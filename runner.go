@@ -73,6 +73,7 @@ func (r *runner) addResult(s result) result {
 }
 
 func (r *runner) run() {
+	go r.collectResults()
 	r.rampup()
 	r.fullAttack()
 	r.quitAttackers()
@@ -99,7 +100,6 @@ func (r *runner) rampup() {
 	if r.config.Verbose {
 		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
 	}
-	go r.collectResults()
 	r.spawnAttacker()
 
 	var rampMetrics *Metrics
