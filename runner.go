@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -62,10 +63,10 @@ func (r *runner) spawnAttacker() {
 
 // addResult is called from a dedicated goroutine.
 func (r *runner) addResult(s result) result {
-	m, ok := r.metrics[s.request]
+	m, ok := r.metrics[s.doResult.RequestIndex]
 	if !ok {
 		m = new(Metrics)
-		r.metrics[s.request] = m
+		r.metrics[s.doResult.RequestIndex] = m
 	}
 	m.add(s)
 	return s
@@ -73,32 +74,42 @@ func (r *runner) addResult(s result) result {
 
 func (r *runner) run() {
 	r.rampup()
+	r.fullAttack()
+	r.quitAttackers()
+	r.tearDownAttackers()
+	r.reportMetrics()
+}
 
+func (r *runner) fullAttack() {
+	if r.config.Verbose {
+		log.Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
+	}
 	limiter := ratelimit.New(r.config.RPS) // per second
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
 	for time.Now().Before(doneDeadline) {
 		limiter.Take()
 		r.next <- true
 	}
-
-	r.quitAttackers()
-	r.tearDownAttackers()
-	r.reportMetrics()
+	if r.config.Verbose {
+		log.Printf("end full attack")
+	}
 }
 
 func (r *runner) rampup() {
 	if r.config.Verbose {
-		log.Println("begin rampup...")
-	}
-	rampMetrics := new(Metrics)
-	r.resultsPipeline = func(rs result) result {
-		rampMetrics.add(rs)
-		return rs
+		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
 	}
 	go r.collectResults()
 	r.spawnAttacker()
 
+	var rampMetrics *Metrics
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
+		// collect metrics for each second
+		rampMetrics = new(Metrics)
+		r.resultsPipeline = func(rs result) result {
+			rampMetrics.add(rs)
+			return rs
+		}
 		// for each second start a new reduced rate limiter
 		rps := i * r.config.RPS / r.config.RampupTimeSec
 		limiter := ratelimit.New(rps) // per second
@@ -109,13 +120,18 @@ func (r *runner) rampup() {
 		}
 		limiter.Take() // to compensate for the first Take of the new limiter
 		rampMetrics.updateLatencies()
-		if rampMetrics.Rate > 0 && (rampMetrics.Rate < float64(r.config.RPS)) {
+		if rampMetrics.Rate > 0 &&
+			(rampMetrics.Rate < float64(rps) &&
+				len(r.attackers) < r.config.MaxAttackers) {
+			if r.config.Verbose {
+				log.Printf("rate [%v] is below target [%v]\n", rampMetrics.Rate, rps)
+			}
 			r.spawnAttacker()
 		}
 	}
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
-		log.Println("... end rampup with average rate", rampMetrics.Rate, "after requests", rampMetrics.Requests)
+		log.Printf("end rampup with average rate [%v] after [%v] requests\n", rampMetrics.Rate, rampMetrics.Requests)
 	}
 }
 
@@ -140,10 +156,22 @@ func (r *runner) tearDownAttackers() {
 }
 
 func (r *runner) reportMetrics() {
-	for _, metrics := range r.metrics {
-		metrics.updateLatencies()
-		json.NewEncoder(os.Stdout).Encode(metrics)
+	var out io.Writer
+	if len(r.config.OutputFilename) > 0 {
+		file, err := os.Create(r.config.OutputFilename)
+		if err != nil {
+			log.Fatal("unable to create output file", err)
+		}
+		defer file.Close()
+		out = file
+	} else {
+		out = os.Stdout
 	}
+	for _, each := range r.metrics {
+		each.updateLatencies()
+	}
+	data, _ := json.MarshalIndent(r.metrics, "", "\t")
+	out.Write(data)
 }
 
 func (r *runner) collectResults() {

@@ -18,7 +18,7 @@ func TestAttack(t *testing.T) {
 	next <- true
 	r := <-results
 	quit <- true
-	if got, want := r.err, error(nil); got != want {
+	if got, want := r.doResult.Error, error(nil); got != want {
 		t.Fatalf("got %v want %v", got, want)
 	}
 	if got, want := r.elapsed, dur; got < want {

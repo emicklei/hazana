@@ -10,15 +10,12 @@ type Attack interface {
 	// It may want to access the config of the runner.
 	Setup(c Config) error
 	// Do performs one request and is executed in one fixed goroutine.
-	// Returns the index of request used and error received.
-	Do() (requestIndex int, err error)
+	Do() DoResult
 	// Teardown should close the connection of the service
 	TearDown() error
 	// Clone should return a new fresh Attack
 	Clone() Attack
 }
-
-
 
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
@@ -28,14 +25,13 @@ func attack(attacker Attack, next, quit <-chan bool, results chan<- result) {
 		select {
 		case <-next:
 			begin := time.Now()
-			ri, err := attacker.Do()
+			r := attacker.Do()
 			end := time.Now()
 			results <- result{
-				request: ri,
-				begin:   begin,
-				end:     end,
-				elapsed: end.Sub(begin),
-				err:     err,
+				doResult: r,
+				begin:    begin,
+				end:      end,
+				elapsed:  end.Sub(begin),
 			}
 		case <-quit:
 			return

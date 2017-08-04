@@ -6,6 +6,8 @@ import (
 	"github.com/streadway/quantile"
 )
 
+// this file is a modified version from https://github.com/tsenart/vegeta/blob/master/lib/metrics.go
+
 type (
 	// Metrics holds metrics computed out of a slice of Results which are used
 	// in some of the Reporters
@@ -79,14 +81,34 @@ func (m *Metrics) add(r result) {
 		m.Latencies.Max = r.elapsed
 	}
 
-	if r.err != nil {
-		if _, ok := m.errors[r.err.Error()]; !ok {
-			m.errors[r.err.Error()] = struct{}{}
-			m.Errors = append(m.Errors, r.err.Error())
+	if r.doResult.Error != nil {
+		if _, ok := m.errors[r.doResult.Error.Error()]; !ok {
+			m.errors[r.doResult.Error.Error()] = struct{}{}
+			m.Errors = append(m.Errors, r.doResult.Error.Error())
 		}
 	} else {
-		m.success++
+		if r.doResult.StatusCode == 0 || (r.doResult.StatusCode >= 200 && r.doResult.StatusCode < 400) {
+			m.success++
+		}
 	}
+}
+
+// merge combines (where possible) the metrics of another.
+func (m *Metrics) merge(o *Metrics) {
+	m.init()
+	if m.Earliest.IsZero() || o.Earliest.Before(m.Earliest) {
+		m.Earliest = o.Earliest
+	}
+	if o.Latest.After(m.Latest) {
+		m.Latest = o.Latest
+	}
+	if o.End.After(m.End) {
+		m.End = o.End
+	}
+	m.latencies.Add(float64(o.Latencies.Mean))
+	m.Requests += o.Requests
+	m.success += o.success
+	m.Latencies.Total += o.Latencies.Total
 }
 
 // updateLatencies computes derived summary metrics which don't need to be run on every add call.
