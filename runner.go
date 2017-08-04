@@ -7,15 +7,18 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"go.uber.org/ratelimit"
 )
 
 type runner struct {
-	config     Config
-	attackers  []Attack
-	next, quit chan bool
-	results    chan result
-	prototype  Attack
-	metrics    map[int]*Metrics
+	config          Config
+	attackers       []Attack
+	next, quit      chan bool
+	results         chan result
+	prototype       Attack
+	metrics         map[int]*Metrics
+	resultsPipeline func(r result) result
 }
 
 // Run starts attacking a service using an Attack implementation and a configuration.
@@ -41,6 +44,7 @@ func (r *runner) init() {
 	r.results = make(chan result)
 	r.attackers = []Attack{}
 	r.metrics = map[int]*Metrics{}
+	r.resultsPipeline = r.addResult
 }
 
 func (r *runner) spawnAttacker() {
@@ -57,63 +61,23 @@ func (r *runner) spawnAttacker() {
 }
 
 // addResult is called from a dedicated goroutine.
-func (r *runner) addResult(s result) {
+func (r *runner) addResult(s result) result {
 	m, ok := r.metrics[s.request]
 	if !ok {
 		m = new(Metrics)
 		r.metrics[s.request] = m
 	}
 	m.add(s)
+	return s
 }
 
 func (r *runner) run() {
-	// TODO which request takes longest?
-	// launch a probe
-	r.spawnAttacker()
-	r.next <- true
-	result := <-r.results
-	if r.config.Verbose {
-		log.Printf("probe response time [%v]\n", result.elapsed)
-		if result.err != nil {
-			log.Fatal("probe failed ", result.err)
-		}
-	}
+	r.rampup()
 
-	// based on initial response, we spawn attackers
-	// they wait on receive from the next channel
-	probeMs := (result.elapsed.Nanoseconds() / 1e06) + 1
-	attackerCount := int(probeMs * int64(r.config.RPS) / 1000)
-	if attackerCount > r.config.MaxAttackers {
-		attackerCount = r.config.MaxAttackers
-	}
-	for i := 0; i < attackerCount-1; i++ { // minus 1 because the probe is still active
-		r.spawnAttacker()
-	}
-	slot := 1000 / *oRPS // time between requests to be send in milliseconds
-	slotTicker := time.Tick(time.Duration(slot) * time.Millisecond)
-
-	rampupDeadline := time.Now().Add(time.Duration(r.config.RampupTimeSec) * time.Second)
-	delayMs := int(probeMs) - slot
-	requests := 0
-	for time.Now().Before(rampupDeadline) {
-		<-slotTicker
-		if delayMs > 0 {
-			time.Sleep(time.Duration(delayMs) * time.Millisecond)
-			delayMs-- // TODO compute the delta, use 1 for now
-		}
-		r.next <- true
-		<-r.results
-		requests++
-	}
-	if r.config.Verbose {
-		log.Printf("sent [%d] requests during rampup of [%v] (average %v rps)", requests, time.Duration(r.config.RampupTimeSec)*time.Second, float64(requests)/float64((time.Duration(*oRampupTime)*time.Second).Seconds()))
-	}
-
-	go r.collectResults()
-
+	limiter := ratelimit.New(r.config.RPS) // per second
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
 	for time.Now().Before(doneDeadline) {
-		<-slotTicker
+		limiter.Take()
 		r.next <- true
 	}
 
@@ -122,21 +86,56 @@ func (r *runner) run() {
 	r.reportMetrics()
 }
 
-func (r *runner) quitAttackers() {
-	for i := range r.attackers {
-		if r.config.Verbose {
-			log.Printf("stopping attacker [%d]\n", i+1)
+func (r *runner) rampup() {
+	if r.config.Verbose {
+		log.Println("begin rampup...")
+	}
+	rampMetrics := new(Metrics)
+	r.resultsPipeline = func(rs result) result {
+		rampMetrics.add(rs)
+		return rs
+	}
+	go r.collectResults()
+	r.spawnAttacker()
+
+	for i := 1; i <= r.config.RampupTimeSec; i++ {
+		// for each second start a new reduced rate limiter
+		rps := i * r.config.RPS / r.config.RampupTimeSec
+		limiter := ratelimit.New(rps) // per second
+		oneSecond := time.Now().Add(time.Duration(1 * time.Second))
+		for time.Now().Before(oneSecond) {
+			limiter.Take()
+			r.next <- true
 		}
+		limiter.Take() // to compensate for the first Take of the new limiter
+		rampMetrics.updateLatencies()
+		if rampMetrics.Rate > 0 && (rampMetrics.Rate < float64(r.config.RPS)) {
+			r.spawnAttacker()
+		}
+	}
+	r.resultsPipeline = r.addResult
+	if r.config.Verbose {
+		log.Println("... end rampup with average rate", rampMetrics.Rate, "after requests", rampMetrics.Requests)
+	}
+}
+
+func (r *runner) quitAttackers() {
+	if r.config.Verbose {
+		log.Printf("stopping attackers [%d]\n", len(r.attackers))
+	}
+	for _ = range r.attackers {
 		r.quit <- true
 	}
 }
 
 func (r *runner) tearDownAttackers() {
-	for i, each := range r.attackers {
-		if r.config.Verbose {
-			log.Printf("tearing down attacker [%d]\n", i+1)
+	if r.config.Verbose {
+		log.Printf("tearing down attackers [%d]\n", len(r.attackers))
+	}
+	for _, each := range r.attackers {
+		if err := each.TearDown(); err != nil {
+			log.Printf("ERROR failed to teardown attacker [%v]\n", err)
 		}
-		_ = each.TearDown()
 	}
 }
 
@@ -149,10 +148,6 @@ func (r *runner) reportMetrics() {
 
 func (r *runner) collectResults() {
 	for {
-		result := <-r.results
-		if result.err != nil && r.config.Verbose {
-			log.Println("WARN ", result.err)
-		}
-		r.addResult(result)
+		r.resultsPipeline(<-r.results)
 	}
 }

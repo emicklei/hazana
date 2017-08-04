@@ -18,12 +18,7 @@ type Attack interface {
 	Clone() Attack
 }
 
-type result struct {
-	begin, end time.Time
-	request    int // index in list from requests
-	elapsed    time.Duration
-	err        error
-}
+
 
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
