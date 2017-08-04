@@ -84,6 +84,8 @@ func (m *Metrics) add(r result) {
 			m.errors[r.err.Error()] = struct{}{}
 			m.Errors = append(m.Errors, r.err.Error())
 		}
+	} else {
+		m.success++
 	}
 }
 
@@ -105,6 +107,7 @@ func (m *Metrics) updateLatencies() {
 
 func (m *Metrics) init() {
 	if m.latencies == nil {
+		m.errors = map[string]struct{}{}
 		m.latencies = quantile.New(
 			quantile.Known(0.50, 0.01),
 			quantile.Known(0.95, 0.001),

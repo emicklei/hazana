@@ -6,7 +6,7 @@ type attackMock struct {
 	sleep time.Duration
 }
 
-func (m *attackMock) Setup() error {
+func (m *attackMock) Setup(c Config) error {
 	return nil
 }
 

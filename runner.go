@@ -2,6 +2,8 @@ package hazana
 
 import (
 	"encoding/json"
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -16,8 +18,16 @@ type runner struct {
 	metrics    map[int]*Metrics
 }
 
-// Run starts attacking a service using an Attack implementation.
+// Run starts attacking a service using an Attack implementation and a configuration.
 func Run(a Attack, c Config) {
+	if msg := c.Validate(); len(msg) > 0 {
+		for _, each := range msg {
+			fmt.Println("[config error]", each)
+		}
+		fmt.Println()
+		flag.Usage()
+		os.Exit(0)
+	}
 	r := new(runner)
 	r.config = c
 	r.prototype = a
@@ -35,10 +45,10 @@ func (r *runner) init() {
 
 func (r *runner) spawnAttacker() {
 	if r.config.Verbose {
-		log.Printf("spawn new attacker [%d]\n", len(r.attackers)+1)
+		log.Printf("setup and spawn new attacker [%d]\n", len(r.attackers)+1)
 	}
 	attacker := r.prototype.Clone()
-	if err := attacker.Setup(); err != nil {
+	if err := attacker.Setup(r.config); err != nil {
 		log.Printf("attacker [%d] setup failed with [%v]\n", len(r.attackers)+1, err)
 		return
 	}
@@ -63,7 +73,7 @@ func (r *runner) run() {
 	r.next <- true
 	result := <-r.results
 	if r.config.Verbose {
-		log.Println("probe response time ", result.elapsed)
+		log.Printf("probe response time [%v]\n", result.elapsed)
 		if result.err != nil {
 			log.Fatal("probe failed ", result.err)
 		}
@@ -96,7 +106,7 @@ func (r *runner) run() {
 		requests++
 	}
 	if r.config.Verbose {
-		log.Printf("sent %d requests during rampup of %v (average %v rps)", requests, time.Duration(r.config.RampupTimeSec)*time.Second, float64(requests)/float64((time.Duration(*oRampupTime)*time.Second).Seconds()))
+		log.Printf("sent [%d] requests during rampup of [%v] (average %v rps)", requests, time.Duration(r.config.RampupTimeSec)*time.Second, float64(requests)/float64((time.Duration(*oRampupTime)*time.Second).Seconds()))
 	}
 
 	go r.collectResults()
@@ -107,16 +117,30 @@ func (r *runner) run() {
 		r.next <- true
 	}
 
-	// kill the attackers
-	for i, each := range r.attackers {
+	r.quitAttackers()
+	r.tearDownAttackers()
+	r.reportMetrics()
+}
+
+func (r *runner) quitAttackers() {
+	for i := range r.attackers {
 		if r.config.Verbose {
-			log.Println("killing attacker ", i+1)
+			log.Printf("stopping attacker [%d]\n", i+1)
 		}
 		r.quit <- true
+	}
+}
+
+func (r *runner) tearDownAttackers() {
+	for i, each := range r.attackers {
+		if r.config.Verbose {
+			log.Printf("tearing down attacker [%d]\n", i+1)
+		}
 		_ = each.TearDown()
 	}
+}
 
-	// report the metrics
+func (r *runner) reportMetrics() {
 	for _, metrics := range r.metrics {
 		metrics.updateLatencies()
 		json.NewEncoder(os.Stdout).Encode(metrics)

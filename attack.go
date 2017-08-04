@@ -7,7 +7,8 @@ import (
 // Attack must be implemented by a service client.
 type Attack interface {
 	// Setup should establish the connection to the service
-	Setup() error
+	// It may want to access the config of the runner.
+	Setup(c Config) error
 	// Do performs one request and is executed in one fixed goroutine.
 	// Returns the index of request used and error received.
 	Do() (requestIndex int, err error)
