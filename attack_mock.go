@@ -15,7 +15,7 @@ func (m *attackMock) Do() DoResult {
 	return DoResult{}
 }
 
-func (m *attackMock) TearDown() error {
+func (m *attackMock) Teardown() error {
 	return nil
 }
 

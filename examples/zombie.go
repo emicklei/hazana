@@ -19,7 +19,7 @@ func (z zombieAttack) Do() hazana.DoResult {
 	return hazana.DoResult{}
 }
 
-func (z zombieAttack) TearDown() error {
+func (z zombieAttack) Teardown() error {
 	return nil
 }
 

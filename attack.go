@@ -12,7 +12,7 @@ type Attack interface {
 	// Do performs one request and is executed in one fixed goroutine.
 	Do() DoResult
 	// Teardown should close the connection of the service
-	TearDown() error
+	Teardown() error
 	// Clone should return a new fresh Attack
 	Clone() Attack
 }

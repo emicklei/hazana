@@ -149,7 +149,7 @@ func (r *runner) tearDownAttackers() {
 		log.Printf("tearing down attackers [%d]\n", len(r.attackers))
 	}
 	for _, each := range r.attackers {
-		if err := each.TearDown(); err != nil {
+		if err := each.Teardown(); err != nil {
 			log.Printf("ERROR failed to teardown attacker [%v]\n", err)
 		}
 	}
