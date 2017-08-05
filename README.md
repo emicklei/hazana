@@ -4,7 +4,8 @@
 
 Hazana was created to create load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any language). However, by providing the Attack interface, any client and protocol could potentially be tested with this package.
 
-Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use client code to perform the request. Consequently, time to send a request and receive a response includes time spent on marshalling that request and unmarshalling a response.
+Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use client code to perform the request. 
+Consequently, time to send a request and receive a response includes time spent on marshalling that request and unmarshalling a response.
 
 ### Attack
 
@@ -22,9 +23,14 @@ Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send
     }
     
 Depending on the target RPS (requests per second), the **hazana** runner will spawn goroutines to meet this load.
-Each goroutine will use one Attack value to perform the communication ( see **Do()** ). Typically each Attack value uses its own connection but your implementation can use another strategy.
+Each goroutine will use one Attack value to perform the communication ( see **Do()** ).
+Typically each Attack value uses its own connection but your implementation can use another strategy.
 
 ### Rampup
-The **hazana** runner can use a rampup period in which the RPS is increased (per second) during the rampup time. In this phase, new goroutines could be spawned if the actual rate is lower than the increasing target.
+The **hazana** runner can use a rampup period in which the RPS is increased (every second) during the rampup time.
+In this phase, new goroutines could be spawned if the actual rate is lower than the increasing target and the maximum is not reached
+
+### Concurrency
+The **hazana** will compute how many goroutines are needed to match the target RPS load.
 
 © 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.

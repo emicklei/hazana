@@ -93,24 +93,6 @@ func (m *Metrics) add(r result) {
 	}
 }
 
-// merge combines (where possible) the metrics of another.
-func (m *Metrics) merge(o *Metrics) {
-	m.init()
-	if m.Earliest.IsZero() || o.Earliest.Before(m.Earliest) {
-		m.Earliest = o.Earliest
-	}
-	if o.Latest.After(m.Latest) {
-		m.Latest = o.Latest
-	}
-	if o.End.After(m.End) {
-		m.End = o.End
-	}
-	m.latencies.Add(float64(o.Latencies.Mean))
-	m.Requests += o.Requests
-	m.success += o.success
-	m.Latencies.Total += o.Latencies.Total
-}
-
 // updateLatencies computes derived summary metrics which don't need to be run on every add call.
 func (m *Metrics) updateLatencies() {
 	m.init()

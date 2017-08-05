@@ -74,7 +74,7 @@ func (r *runner) addResult(s result) result {
 
 func (r *runner) run() {
 	go r.collectResults()
-	r.rampup()
+	r.rampUp()
 	r.fullAttack()
 	r.quitAttackers()
 	r.tearDownAttackers()
@@ -96,7 +96,7 @@ func (r *runner) fullAttack() {
 	}
 }
 
-func (r *runner) rampup() {
+func (r *runner) rampUp() {
 	if r.config.Verbose {
 		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
 	}
@@ -106,6 +106,7 @@ func (r *runner) rampup() {
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
 		// collect metrics for each second
 		rampMetrics = new(Metrics)
+		// change pipeline function to collect local metrics
 		r.resultsPipeline = func(rs result) result {
 			rampMetrics.add(rs)
 			return rs
@@ -120,15 +121,20 @@ func (r *runner) rampup() {
 		}
 		limiter.Take() // to compensate for the first Take of the new limiter
 		rampMetrics.updateLatencies()
-		if rampMetrics.Rate > 0 &&
-			(rampMetrics.Rate < float64(rps) &&
-				len(r.attackers) < r.config.MaxAttackers) {
+		if rampMetrics.Rate > 0 && rampMetrics.Rate < float64(rps) {
 			if r.config.Verbose {
 				log.Printf("rate [%v] is below target [%v]\n", rampMetrics.Rate, rps)
 			}
-			r.spawnAttacker()
+			if len(r.attackers) < r.config.MaxAttackers {
+				r.spawnAttacker()
+			} else {
+				if r.config.Verbose {
+					log.Printf("reached maximum attackers of [%d]\n", r.config.MaxAttackers)
+				}
+			}
 		}
 	}
+	// restore pipeline function
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
 		log.Printf("end rampup with average rate [%v] after [%v] requests\n", rampMetrics.Rate, rampMetrics.Requests)
