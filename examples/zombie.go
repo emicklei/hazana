@@ -6,6 +6,9 @@ import (
 	"github.com/emicklei/hazana"
 )
 
+// Perform one sample call
+// go run zombie.go -t
+//
 // go run zombie.go -rps 10
 
 type zombieAttack struct{}

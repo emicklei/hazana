@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"time"
 
@@ -24,6 +25,15 @@ type runner struct {
 
 // Run starts attacking a service using an Attack implementation and a configuration.
 func Run(a Attack, c Config) {
+	r := new(runner)
+	r.config = c
+	r.prototype = a
+
+	// do a test if the flag says so
+	if *oSample {
+		r.test()
+		return
+	}
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
 			fmt.Println("[config error]", each)
@@ -32,9 +42,6 @@ func Run(a Attack, c Config) {
 		flag.Usage()
 		os.Exit(0)
 	}
-	r := new(runner)
-	r.config = c
-	r.prototype = a
 	r.init()
 	r.run()
 }
@@ -72,6 +79,20 @@ func (r *runner) addResult(s result) result {
 	return s
 }
 
+// test uses the Attack to perform one call and report its result
+// it is intended for development of an Attach implementation.
+func (r *runner) test() {
+	probe := r.prototype.Clone()
+	if err := probe.Setup(r.config); err != nil {
+		log.Printf("Test attack setup failed [%v]", err)
+		return
+	}
+	defer probe.Teardown()
+	now := time.Now()
+	result := probe.Do()
+	log.Printf("Test attack call in [%v] with status [%v] and error [%v]\n", time.Now().Sub(now), result.StatusCode, result.Error)
+}
+
 func (r *runner) run() {
 	go r.collectResults()
 	r.rampUp()
@@ -102,6 +123,7 @@ func (r *runner) rampUp() {
 	}
 	r.spawnAttacker()
 
+	spawnThresholdRatio := 0.9 // 90%
 	var rampMetrics *Metrics
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
 		// collect metrics for each second
@@ -113,6 +135,9 @@ func (r *runner) rampUp() {
 		}
 		// for each second start a new reduced rate limiter
 		rps := i * r.config.RPS / r.config.RampupTimeSec
+		if rps == 0 { // minimal 1
+			rps = 1
+		}
 		limiter := ratelimit.New(rps) // per second
 		oneSecond := time.Now().Add(time.Duration(1 * time.Second))
 		for time.Now().Before(oneSecond) {
@@ -125,11 +150,18 @@ func (r *runner) rampUp() {
 			if r.config.Verbose {
 				log.Printf("rate [%v] is below target [%v]\n", rampMetrics.Rate, rps)
 			}
-			if len(r.attackers) < r.config.MaxAttackers {
-				r.spawnAttacker()
-			} else {
-				if r.config.Verbose {
-					log.Printf("reached maximum attackers of [%d]\n", r.config.MaxAttackers)
+			// how many attackers can we add to meet the current rps
+			if rampMetrics.Rate/float64(rps) < spawnThresholdRatio {
+				wanted := int(math.Trunc(float64(rps)/rampMetrics.Rate)) * len(r.attackers)
+				for s := len(r.attackers); s < wanted; s++ {
+					if s < r.config.MaxAttackers {
+						r.spawnAttacker()
+					} else {
+						if r.config.Verbose {
+							log.Printf("reached maximum attackers of [%d]\n", r.config.MaxAttackers)
+							break
+						}
+					}
 				}
 			}
 		}
@@ -137,7 +169,7 @@ func (r *runner) rampUp() {
 	// restore pipeline function
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
-		log.Printf("end rampup with average rate [%v] after [%v] requests\n", rampMetrics.Rate, rampMetrics.Requests)
+		log.Printf("end rampup with average rate [%v] after [%v] requests using [%d] attackers\n", rampMetrics.Rate, rampMetrics.Requests, len(r.attackers))
 	}
 }
 

@@ -39,4 +39,21 @@ In this phase, new goroutines could be spawned if the actual rate is lower than 
 ### Concurrency
 **Hazana** will compute how many goroutines are needed to match the target RPS load.
 
+### Flags
+Programs that use the **hazana** package will have several flags to control the load runner.
+
+    Usage of <<your load test program>>:
+    -attack int
+            duration of the attack in seconds (default 2)
+    -max int
+            maximum concurrent attackers (default 100)
+    -o string
+            output file to write the metrics per request (use stdout if empty)
+    -ramp int
+            ramp up time in seconds (default 1)
+    -rps int
+            target number of requests per second, must be greater than zero
+    -t	perform one sample call to test the attack implementation
+    -v	verbose logging
+
 © 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
