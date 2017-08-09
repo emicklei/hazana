@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"os"
 	"time"
 
@@ -121,55 +120,11 @@ func (r *runner) rampUp() {
 	if r.config.Verbose {
 		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
 	}
-	r.spawnAttacker()
-
-	spawnThresholdRatio := 0.9 // 90%
-	var rampMetrics *Metrics
-	for i := 1; i <= r.config.RampupTimeSec; i++ {
-		// collect metrics for each second
-		rampMetrics = new(Metrics)
-		// change pipeline function to collect local metrics
-		r.resultsPipeline = func(rs result) result {
-			rampMetrics.add(rs)
-			return rs
-		}
-		// for each second start a new reduced rate limiter
-		rps := i * r.config.RPS / r.config.RampupTimeSec
-		if rps == 0 { // minimal 1
-			rps = 1
-		}
-		limiter := ratelimit.New(rps) // per second
-		oneSecond := time.Now().Add(time.Duration(1 * time.Second))
-		for time.Now().Before(oneSecond) {
-			limiter.Take()
-			r.next <- true
-		}
-		limiter.Take() // to compensate for the first Take of the new limiter
-		rampMetrics.updateLatencies()
-		if rampMetrics.Rate > 0 && rampMetrics.Rate < float64(rps) {
-			if r.config.Verbose {
-				log.Printf("rate [%v] is below target [%v]\n", rampMetrics.Rate, rps)
-			}
-			// how many attackers can we add to meet the current rps
-			if rampMetrics.Rate/float64(rps) < spawnThresholdRatio {
-				wanted := int(math.Trunc(float64(rps)/rampMetrics.Rate)) * len(r.attackers)
-				for s := len(r.attackers); s < wanted; s++ {
-					if s < r.config.MaxAttackers {
-						r.spawnAttacker()
-					} else {
-						if r.config.Verbose {
-							log.Printf("reached maximum attackers of [%d]\n", r.config.MaxAttackers)
-							break
-						}
-					}
-				}
-			}
-		}
-	}
+	linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
 	// restore pipeline function
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
-		log.Printf("end rampup with average rate [%v] after [%v] requests using [%d] attackers\n", rampMetrics.Rate, rampMetrics.Requests, len(r.attackers))
+		log.Printf("end rampup ending up with [%d] attackers\n", len(r.attackers))
 	}
 }
 
