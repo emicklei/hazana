@@ -26,18 +26,14 @@ Consequently, time to send a request and receive a response includes time spent 
         Clone() Attack
     }
     
-Depending on the target RPS (requests per second), the **hazana** runner will spawn goroutines to meet this load.
+The **hazana** runner will spawn goroutines to meet this load.
 Each goroutine will use one Attack value to perform the communication ( see **Do()** ).
 Typically each Attack value uses its own connection but your implementation can use another strategy.
 
 ### Rampup
-The **hazana** runner can use a rampup period in which the RPS is increased (every second) during the rampup time.
-In this phase, new goroutines could be spawned if the actual rate is lower than the increasing target and the maximum is not reached
-
+The **hazana** runner will use a rampup period in which the RPS is increased (every second) during the rampup time. In this phase, new goroutines are spawned up to the given maximum. Currently, one rampup strategy is implemented that will create exactly the maximum number of goroutines within the rampup period. A more efficient and dynamic strategy is to spawn goroutines as needed to match the current rps load during rampup.
+ 
 ![](hazana.png)
-
-### Concurrency
-**Hazana** will compute how many goroutines are needed to match the target RPS load.
 
 ### Flags
 Programs that use the **hazana** package will have several flags to control the load runner.
@@ -48,7 +44,7 @@ Programs that use the **hazana** package will have several flags to control the 
         -max int
                 maximum concurrent attackers (default 10)
         -o string
-                output file to write the metrics per request (use stdout if empty)
+                output file to write the metrics per sample request index (use stdout if empty)
         -ramp int
                 ramp up time in seconds (default 10)
         -rps int

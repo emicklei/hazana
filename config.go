@@ -6,7 +6,7 @@ var oRPS = flag.Int("rps", 1, "target number of requests per second, must be gre
 var oAttackTime = flag.Int("attack", 60, "duration of the attack in seconds")
 var oRampupTime = flag.Int("ramp", 10, "ramp up time in seconds")
 var oMaxAttackers = flag.Int("max", 10, "maximum concurrent attackers")
-var oOutput = flag.String("o", "", "output file to write the metrics per request (use stdout if empty)")
+var oOutput = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
 var oVerbose = flag.Bool("v", false, "verbose logging")
 var oSample = flag.Bool("t", false, "perform one sample call to test the attack implementation")
 
