@@ -7,4 +7,7 @@ func TestLoadConfig(t *testing.T) {
 	if len(c.Metadata) != 0 {
 		t.Error("expected empty metadata")
 	}
+	if c.RampupTimeSec != 10 {
+		t.Error("expected RPS 10")
+	}
 }
