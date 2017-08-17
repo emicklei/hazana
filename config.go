@@ -21,13 +21,13 @@ var (
 
 // Config holds settings for a Runner.
 type Config struct {
-	RPS            int
-	AttackTimeSec  int
-	RampupTimeSec  int
-	MaxAttackers   int
-	OutputFilename string
-	Verbose        bool
-	Metadata       map[string]string
+	RPS            int               `json:"rps"`
+	AttackTimeSec  int               `json:"attackTimeSec"`
+	RampupTimeSec  int               `json:"rampupTimeSec"`
+	MaxAttackers   int               `json:"maxAttackers"`
+	OutputFilename string            `json:"outputFilename,omitempty"`
+	Verbose        bool              `json:"verbose"`
+	Metadata       map[string]string `json:"metadata,omitempty"`
 }
 
 // Validate checks all settings and returns a list of strings with problems.

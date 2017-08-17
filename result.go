@@ -23,7 +23,8 @@ type DoResult struct {
 }
 
 type report struct {
-	StartedAt, FinishedAt time.Time
-	Configuration         Config
-	Metrics               map[string]*Metrics
+	StartedAt     time.Time           `json:"startedAt"`
+	FinishedAt    time.Time           `json:"finishedAt"`
+	Configuration Config              `json:"configuration"`
+	Metrics       map[string]*Metrics `json:"metrics"`
 }
