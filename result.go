@@ -10,8 +10,8 @@ type result struct {
 
 // DoResult is the return value of a Do call on an Attack.
 type DoResult struct {
-	// Index in the list of request samples, 0 if not applicable
-	RequestIndex int
+	// Label identifying the request that was send which is only used for reporting the metrics.
+	RequestLabel string
 	// The error that happened when sending the request or receiving the response.
 	Error error
 	// The HTTP status code.
@@ -20,4 +20,10 @@ type DoResult struct {
 	BytesIn int64
 	// Number of bytes transferred when receiving the response.
 	BytesOut int64
+}
+
+type report struct {
+	StartedAt, FinishedAt time.Time
+	Configuration         Config
+	Metrics               map[string]*Metrics
 }

@@ -1,14 +1,23 @@
 package hazana
 
-import "flag"
+import (
+	"encoding/json"
+	"flag"
+	"log"
+	"os"
+	"time"
+)
 
-var oRPS = flag.Int("rps", 1, "target number of requests per second, must be greater than zero")
-var oAttackTime = flag.Int("attack", 60, "duration of the attack in seconds")
-var oRampupTime = flag.Int("ramp", 10, "ramp up time in seconds")
-var oMaxAttackers = flag.Int("max", 10, "maximum concurrent attackers")
-var oOutput = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
-var oVerbose = flag.Bool("v", false, "verbose logging")
-var oSample = flag.Bool("t", false, "perform one sample call to test the attack implementation")
+var (
+	oRPS             = flag.Int("rps", 1, "target number of requests per second, must be greater than zero")
+	oAttackTime      = flag.Int("attack", 60, "duration of the attack in seconds")
+	oRampupTime      = flag.Int("ramp", 10, "ramp up time in seconds")
+	oMaxAttackers    = flag.Int("max", 10, "maximum concurrent attackers")
+	oOutput          = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
+	oVerbose         = flag.Bool("v", false, "verbose logging")
+	oSample          = flag.Bool("t", false, "perform one sample call to test the attack implementation")
+	programStartedAt = time.Now()
+)
 
 // Config holds settings for a Runner.
 type Config struct {
@@ -18,6 +27,7 @@ type Config struct {
 	MaxAttackers   int
 	OutputFilename string
 	Verbose        bool
+	Metadata       map[string]string
 }
 
 // Validate checks all settings and returns a list of strings with problems.
@@ -37,7 +47,7 @@ func (c Config) Validate() (list []string) {
 	return
 }
 
-// ConfigFromFlags creates and validates a Config for use in a runner.
+// ConfigFromFlags creates a Config for use in a runner.
 func ConfigFromFlags() Config {
 	flag.Parse()
 	return Config{
@@ -47,5 +57,17 @@ func ConfigFromFlags() Config {
 		Verbose:        *oVerbose,
 		MaxAttackers:   *oMaxAttackers,
 		OutputFilename: *oOutput,
+		Metadata:       map[string]string{},
 	}
+}
+
+// ConfigFromFile loads a Config for use in a runner.
+func ConfigFromFile(named string) (c Config) {
+	f, err := os.Open(named)
+	if err != nil {
+		log.Fatal("unable to read configuration", err)
+	}
+	defer f.Close()
+	json.NewDecoder(f).Decode(&c)
+	return
 }

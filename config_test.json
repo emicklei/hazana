@@ -1,0 +1,8 @@
+{
+    "RPS": 10,
+    "AttackTimeSec": 20,
+    "RampupTimeSec": 10,
+    "MaxAttackers": 10,
+    "OutputFilename": "",
+    "Verbose": true
+}

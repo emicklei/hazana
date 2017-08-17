@@ -18,7 +18,7 @@ type runner struct {
 	next, quit      chan bool
 	results         chan result
 	prototype       Attack
-	metrics         map[int]*Metrics
+	metrics         map[string]*Metrics
 	resultsPipeline func(r result) result
 }
 
@@ -50,7 +50,7 @@ func (r *runner) init() {
 	r.quit = make(chan bool)
 	r.results = make(chan result)
 	r.attackers = []Attack{}
-	r.metrics = map[int]*Metrics{}
+	r.metrics = map[string]*Metrics{}
 	r.resultsPipeline = r.addResult
 }
 
@@ -69,10 +69,10 @@ func (r *runner) spawnAttacker() {
 
 // addResult is called from a dedicated goroutine.
 func (r *runner) addResult(s result) result {
-	m, ok := r.metrics[s.doResult.RequestIndex]
+	m, ok := r.metrics[s.doResult.RequestLabel]
 	if !ok {
 		m = new(Metrics)
-		r.metrics[s.doResult.RequestIndex] = m
+		r.metrics[s.doResult.RequestLabel] = m
 	}
 	m.add(s)
 	return s
@@ -163,7 +163,13 @@ func (r *runner) reportMetrics() {
 	for _, each := range r.metrics {
 		each.updateLatencies()
 	}
-	data, _ := json.MarshalIndent(r.metrics, "", "\t")
+	output := report{
+		StartedAt:     programStartedAt,
+		FinishedAt:    time.Now(),
+		Configuration: r.config,
+		Metrics:       r.metrics,
+	}
+	data, _ := json.MarshalIndent(output, "", "\t")
 	out.Write(data)
 }
 
