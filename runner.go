@@ -24,6 +24,9 @@ type runner struct {
 
 // Run starts attacking a service using an Attack implementation and a configuration.
 func Run(a Attack, c Config) {
+	if c.Verbose {
+		fmt.Println("hazana - load runner")
+	}
 	r := new(runner)
 	r.config = c
 	r.prototype = a
