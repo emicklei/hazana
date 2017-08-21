@@ -19,10 +19,6 @@ var (
 	programStartedAt = time.Now()
 )
 
-func init() {
-	flag.Parse() // always parse flags
-}
-
 // Config holds settings for a Runner.
 type Config struct {
 	RPS            int               `json:"rps"`
@@ -53,6 +49,7 @@ func (c Config) Validate() (list []string) {
 
 // ConfigFromFlags creates a Config for use in a runner.
 func ConfigFromFlags() Config {
+	flag.Parse() // always parse flags
 	return Config{
 		RPS:            *oRPS,
 		AttackTimeSec:  *oAttackTime,
@@ -66,6 +63,7 @@ func ConfigFromFlags() Config {
 
 // ConfigFromFile loads a Config for use in a runner.
 func ConfigFromFile(named string) (c Config) {
+	flag.Parse() // always parse flags
 	f, err := os.Open(named)
 	if err != nil {
 		log.Fatal("unable to read configuration", err)
