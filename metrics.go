@@ -1,6 +1,7 @@
 package hazana
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/streadway/quantile"
@@ -61,6 +62,10 @@ func (m *Metrics) add(r result) {
 	m.init()
 
 	m.Requests++
+	// StatusCode is optional
+	if r.doResult.StatusCode > 0 {
+		m.StatusCodes[strconv.Itoa(r.doResult.StatusCode)]++
+	}
 	m.Latencies.Total += r.elapsed
 
 	m.latencies.Add(float64(r.elapsed))
@@ -111,6 +116,7 @@ func (m *Metrics) updateLatencies() {
 
 func (m *Metrics) init() {
 	if m.latencies == nil {
+		m.StatusCodes = map[string]int{}
 		m.errors = map[string]struct{}{}
 		m.latencies = quantile.New(
 			quantile.Known(0.50, 0.01),
