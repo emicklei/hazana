@@ -9,7 +9,7 @@ import (
 // Perform one sample call
 // go run zombie.go -t
 //
-// go run zombie.go -rps 10
+// go run zombie.go -v -rps 10
 
 type zombieAttack struct{}
 
@@ -31,5 +31,5 @@ func (z zombieAttack) Clone() hazana.Attack {
 }
 
 func main() {
-	hazana.Run(zombieAttack{}, hazana.ConfigFromFlags())
+	hazana.PrintReport(hazana.Run(zombieAttack{}, hazana.ConfigFromFlags()))
 }

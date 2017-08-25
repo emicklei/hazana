@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	oRPS             = flag.Int("rps", 1, "target number of requests per second, must be greater than zero")
-	oAttackTime      = flag.Int("attack", 60, "duration of the attack in seconds")
-	oRampupTime      = flag.Int("ramp", 10, "ramp up time in seconds")
-	oMaxAttackers    = flag.Int("max", 10, "maximum concurrent attackers")
-	oOutput          = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
-	oVerbose         = flag.Bool("v", false, "verbose logging")
-	oSample          = flag.Bool("t", false, "perform one sample call to test the attack implementation")
-	programStartedAt = time.Now()
+	oRPS                = flag.Int("rps", 1, "target number of requests per second, must be greater than zero")
+	oAttackTime         = flag.Int("attack", 60, "duration of the attack in seconds")
+	oRampupTime         = flag.Int("ramp", 10, "ramp up time in seconds")
+	oMaxAttackers       = flag.Int("max", 10, "maximum concurrent attackers")
+	oOutput             = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
+	oVerbose            = flag.Bool("v", false, "verbose logging")
+	oSample             = flag.Bool("t", false, "perform one sample call to test the attack implementation")
+	fullAttackStartedAt time.Time
 )
 
 // Config holds settings for a Runner.

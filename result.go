@@ -1,6 +1,12 @@
 package hazana
 
-import "time"
+import (
+	"encoding/json"
+	"io"
+	"log"
+	"os"
+	"time"
+)
 
 type result struct {
 	begin, end time.Time
@@ -22,9 +28,27 @@ type DoResult struct {
 	BytesOut int64
 }
 
-type report struct {
+// RunReport is an composition of configuration and measurements from a load run.
+type RunReport struct {
 	StartedAt     time.Time           `json:"startedAt"`
 	FinishedAt    time.Time           `json:"finishedAt"`
 	Configuration Config              `json:"configuration"`
 	Metrics       map[string]*Metrics `json:"metrics"`
+}
+
+// PrintReport writes the JSON report to a file or stdout, depending on the configuration.
+func PrintReport(r RunReport) {
+	var out io.Writer
+	if len(r.Configuration.OutputFilename) > 0 {
+		file, err := os.Create(r.Configuration.OutputFilename)
+		if err != nil {
+			log.Fatal("unable to create output file", err)
+		}
+		defer file.Close()
+		out = file
+	} else {
+		out = os.Stdout
+	}
+	data, _ := json.MarshalIndent(r, "", "\t")
+	out.Write(data)
 }

@@ -48,3 +48,8 @@ func (s linearIncreasingGoroutinesAndRequestsPerSecondStrategy) execute(r *runne
 		}
 	}
 }
+
+type spawnAsWeNeedStrategy struct{}
+
+// TODO
+func (s spawnAsWeNeedStrategy) execute(r *runner) {}

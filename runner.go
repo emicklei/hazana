@@ -1,10 +1,8 @@
 package hazana
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"time"
@@ -23,7 +21,8 @@ type runner struct {
 }
 
 // Run starts attacking a service using an Attack implementation and a configuration.
-func Run(a Attack, c Config) {
+// Return a report with statistics per sample and the configuration used.
+func Run(a Attack, c Config) RunReport {
 	if c.Verbose {
 		log.Println("hazana - load runner")
 	}
@@ -34,7 +33,7 @@ func Run(a Attack, c Config) {
 	// do a test if the flag says so
 	if *oSample {
 		r.test()
-		return
+		return RunReport{Configuration: c}
 	}
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
@@ -45,7 +44,7 @@ func Run(a Attack, c Config) {
 		os.Exit(0)
 	}
 	r.init()
-	r.run()
+	return r.run()
 }
 
 func (r *runner) init() {
@@ -82,7 +81,7 @@ func (r *runner) addResult(s result) result {
 }
 
 // test uses the Attack to perform one call and report its result
-// it is intended for development of an Attach implementation.
+// it is intended for development of an Attack implementation.
 func (r *runner) test() {
 	probe := r.prototype.Clone()
 	if err := probe.Setup(r.config); err != nil {
@@ -95,19 +94,21 @@ func (r *runner) test() {
 	log.Printf("Test attack call in [%v] with status [%v] and error [%v]\n", time.Now().Sub(now), result.StatusCode, result.Error)
 }
 
-func (r *runner) run() {
+// run offers the complete flow of a load test.
+func (r *runner) run() RunReport {
 	go r.collectResults()
 	r.rampUp()
 	r.fullAttack()
 	r.quitAttackers()
 	r.tearDownAttackers()
-	r.reportMetrics()
+	return r.reportMetrics()
 }
 
 func (r *runner) fullAttack() {
 	if r.config.Verbose {
 		log.Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
 	}
+	fullAttackStartedAt = time.Now()
 	limiter := ratelimit.New(r.config.RPS) // per second
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
 	for time.Now().Before(doneDeadline) {
@@ -151,29 +152,16 @@ func (r *runner) tearDownAttackers() {
 	}
 }
 
-func (r *runner) reportMetrics() {
-	var out io.Writer
-	if len(r.config.OutputFilename) > 0 {
-		file, err := os.Create(r.config.OutputFilename)
-		if err != nil {
-			log.Fatal("unable to create output file", err)
-		}
-		defer file.Close()
-		out = file
-	} else {
-		out = os.Stdout
-	}
+func (r *runner) reportMetrics() RunReport {
 	for _, each := range r.metrics {
 		each.updateLatencies()
 	}
-	output := report{
-		StartedAt:     programStartedAt,
+	return RunReport{
+		StartedAt:     fullAttackStartedAt,
 		FinishedAt:    time.Now(),
 		Configuration: r.config,
 		Metrics:       r.metrics,
 	}
-	data, _ := json.MarshalIndent(output, "", "\t")
-	out.Write(data)
 }
 
 func (r *runner) collectResults() {
