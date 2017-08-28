@@ -33,7 +33,18 @@ type RunReport struct {
 	StartedAt     time.Time           `json:"startedAt"`
 	FinishedAt    time.Time           `json:"finishedAt"`
 	Configuration Config              `json:"configuration"`
+	RunError      error               `json:"error"`
 	Metrics       map[string]*Metrics `json:"metrics"`
+}
+
+// NewErrorReport returns a report when a Run could not be called or executed.
+func NewErrorReport(err error, config Config) RunReport {
+	return RunReport{
+		StartedAt:     time.Now(),
+		FinishedAt:    time.Now(),
+		RunError:      err,
+		Configuration: config,
+	}
 }
 
 // PrintReport writes the JSON report to a file or stdout, depending on the configuration.
