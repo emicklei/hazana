@@ -127,6 +127,7 @@ func (r *runner) rampUp() {
 		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
 	}
 	linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
+	//spawnAsWeNeedStrategy{}.execute(r)
 	// restore pipeline function
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
