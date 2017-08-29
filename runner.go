@@ -82,6 +82,7 @@ func (r *runner) addResult(s result) result {
 
 // test uses the Attack to perform one call and report its result
 // it is intended for development of an Attack implementation.
+// terminates the program
 func (r *runner) test() {
 	probe := r.prototype.Clone()
 	if err := probe.Setup(r.config); err != nil {
@@ -92,6 +93,7 @@ func (r *runner) test() {
 	now := time.Now()
 	result := probe.Do()
 	log.Printf("Test attack call in [%v] with status [%v] and error [%v]\n", time.Now().Sub(now), result.StatusCode, result.Error)
+	os.Exit(0)
 }
 
 // run offers the complete flow of a load test.
