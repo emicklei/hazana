@@ -123,12 +123,17 @@ func (r *runner) fullAttack() {
 }
 
 func (r *runner) rampUp() {
+	strategy := r.config.rampupStrategy()
 	if r.config.Verbose {
-		log.Printf("begin rampup of [%d] seconds\n", r.config.RampupTimeSec)
+		log.Printf("begin rampup of [%d] seconds using strategy [%s]\n", r.config.RampupTimeSec, strategy)
 	}
-	linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
-	//spawnAsWeNeedStrategy{}.execute(r)
-	// restore pipeline function
+	switch strategy {
+	case "linear":
+		linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
+	case "exp2":
+		spawnAsWeNeedStrategy{}.execute(r)
+	}
+	// restore pipeline function incase it was changed by the rampup strategy
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
 		log.Printf("end rampup ending up with [%d] attackers\n", len(r.attackers))

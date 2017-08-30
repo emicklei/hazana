@@ -15,7 +15,8 @@ var (
 	oMaxAttackers       = flag.Int("max", 10, "maximum concurrent attackers")
 	oOutput             = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
 	oVerbose            = flag.Bool("v", false, "verbose logging")
-	oSample             = flag.Bool("t", false, "perform one sample call to test the attack implementation")
+	oSample             = flag.Bool("t", false, "perform one sample call to test the attack implementation then exits")
+	oRampupStrategy     = flag.String("s", defaultRampupStrategy, "possible values are {linear,exp2}")
 	fullAttackStartedAt time.Time
 )
 
@@ -24,6 +25,7 @@ type Config struct {
 	RPS            int               `json:"rps"`
 	AttackTimeSec  int               `json:"attackTimeSec"`
 	RampupTimeSec  int               `json:"rampupTimeSec"`
+	RampupStrategy string            `json:"rampupStrategy"`
 	MaxAttackers   int               `json:"maxAttackers"`
 	OutputFilename string            `json:"outputFilename,omitempty"`
 	Verbose        bool              `json:"verbose"`
@@ -47,6 +49,13 @@ func (c Config) Validate() (list []string) {
 	return
 }
 
+func (c Config) rampupStrategy() string {
+	if len(c.RampupStrategy) == 0 {
+		return defaultRampupStrategy
+	}
+	return c.RampupStrategy
+}
+
 // ConfigFromFlags creates a Config for use in a runner.
 func ConfigFromFlags() Config {
 	flag.Parse() // always parse flags
@@ -54,6 +63,7 @@ func ConfigFromFlags() Config {
 		RPS:            *oRPS,
 		AttackTimeSec:  *oAttackTime,
 		RampupTimeSec:  *oRampupTime,
+		RampupStrategy: *oRampupStrategy,
 		Verbose:        *oVerbose,
 		MaxAttackers:   *oMaxAttackers,
 		OutputFilename: *oOutput,

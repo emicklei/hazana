@@ -31,7 +31,9 @@ Each goroutine will use one Attack value to perform the communication ( see **Do
 Typically each Attack value uses its own connection but your implementation can use another strategy.
 
 ### Rampup
-The **hazana** runner will use a rampup period in which the RPS is increased (every second) during the rampup time. In this phase, new goroutines are spawned up to the given maximum. Currently, one rampup strategy is implemented that will create exactly the maximum number of goroutines within the rampup period. A more efficient and dynamic strategy is to spawn goroutines as needed to match the current rps load during rampup.
+The **hazana** runner will use a rampup period in which the RPS is increased (every second) during the rampup time. In this phase, new goroutines are spawned up to the given maximum. This package has two strategies for adding new attackers to meet the rps.
+The **linear** rampup strategy will create exactly the maximum number of goroutines within the rampup period. 
+The **exp2** strategy spawn goroutines as needed (exponential with max factor of 2) to match the current rps load during.
  
 ![](hazana.png)
 
@@ -47,6 +49,8 @@ Programs that use the **hazana** package will have several flags to control the 
                 output file to write the metrics per sample request index (use stdout if empty)
         -ramp int
                 ramp up time in seconds (default 10)
+        -s string
+                possible values are {linear,exp2} (default exp2)
         -rps int
                 target number of requests per second, must be greater than zero (default 1)
         -t	perform one sample call to test the attack implementation
@@ -88,6 +92,7 @@ Programs that use the **hazana** package will have several flags to control the 
                         "attackTimeSec": 20,
                         "rampupTimeSec": 10,
                         "maxAttackers": 10,
+                        "rampupStrategy" : "linear",
                         "verbose": true,
                         "metadata": {
                                 "service" : "happiness.services.com",

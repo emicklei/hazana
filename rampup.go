@@ -7,6 +7,8 @@ import (
 	"go.uber.org/ratelimit"
 )
 
+const defaultRampupStrategy = "exp2"
+
 type rampupStrategy interface {
 	execute(r *runner)
 }
@@ -16,15 +18,23 @@ type linearIncreasingGoroutinesAndRequestsPerSecondStrategy struct{}
 func (s linearIncreasingGoroutinesAndRequestsPerSecondStrategy) execute(r *runner) {
 	r.spawnAttacker() // start at least one
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
-		routines := i * r.config.MaxAttackers / r.config.RampupTimeSec
-		// spawn extra goroutines
-		for s := len(r.attackers); s < routines; s++ {
-			r.spawnAttacker()
-		}
+		spawnAttackersToSize(r, i*r.config.MaxAttackers/r.config.RampupTimeSec)
 		takeDuringOneRampupSecond(r, i)
 	}
 }
 
+func spawnAttackersToSize(r *runner, count int) {
+	routines := count
+	if count > r.config.MaxAttackers {
+		routines = r.config.MaxAttackers
+	}
+	// spawn extra goroutines
+	for s := len(r.attackers); s < routines; s++ {
+		r.spawnAttacker()
+	}
+}
+
+// takeDuringOneRampupSecond puts all attackers to work during one second with a reduced RPS.
 func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	// collect metrics for each second
 	rampMetrics := new(Metrics)
@@ -40,6 +50,7 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	}
 	limiter := ratelimit.New(rps)
 	oneSecond := time.Now().Add(time.Duration(1 * time.Second))
+	// put the attackers to work
 	for time.Now().Before(oneSecond) {
 		limiter.Take()
 		r.next <- true
@@ -48,7 +59,7 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	rampMetrics.updateLatencies()
 
 	if r.config.Verbose {
-		log.Printf("current rate [%v], target rate [%v], attackers [%v], mean response time [%v]\n", rampMetrics.Rate, rps, len(r.attackers), time.Duration(rampMetrics.Latencies.Mean))
+		log.Printf("current rate [%v], target rate [%v], attackers [%v], mean response time [%v], requests [%d]\n", rampMetrics.Rate, rps, len(r.attackers), time.Duration(rampMetrics.Latencies.Mean), rampMetrics.Requests)
 	}
 	return rps, rampMetrics
 }
@@ -61,15 +72,11 @@ func (s spawnAsWeNeedStrategy) execute(r *runner) {
 		targetRate, lastMetrics := takeDuringOneRampupSecond(r, i)
 		currentRate := lastMetrics.Rate
 		if currentRate < float64(targetRate) {
-			// factor := float64(targetRate) / currentRate
-			// if factor > 2.0 {
-			// 	factor = 2
-			// }
-			routines := len(r.attackers) + 1 //* int(math.Ceil(factor))
-			// spawn extra goroutines
-			for s := len(r.attackers); s < routines; s++ {
-				r.spawnAttacker()
+			factor := float64(targetRate) / currentRate
+			if factor > 2.0 {
+				factor = 2.0
 			}
+			spawnAttackersToSize(r, int(float64(len(r.attackers))*factor))
 		}
 	}
 }
