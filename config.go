@@ -15,7 +15,7 @@ var (
 	oMaxAttackers       = flag.Int("max", 10, "maximum concurrent attackers")
 	oOutput             = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
 	oVerbose            = flag.Bool("v", false, "verbose logging")
-	oSample             = flag.Bool("t", false, "perform one sample call to test the attack implementation then exits")
+	oSample             = flag.Int("t", 0, "test your attack implementation with a number of sample calls. Your program exits after this.")
 	oRampupStrategy     = flag.String("s", defaultRampupStrategy, "possible values are {linear,exp2}")
 	fullAttackStartedAt time.Time
 )

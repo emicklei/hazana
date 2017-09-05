@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/emicklei/hazana.png)](https://travis-ci.org/emicklei/hazana)
 
-Hazana was created to create load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any language). However, by providing the Attack interface, any client and protocol could potentially be tested with this package.
+Hazana is created for load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any supported language). In addition, by providing the Attack interface, any client and protocol could potentially be tested with this package.
 
 Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use client code to perform the request. 
 Consequently, time to send a request and receive a response includes time spent on marshalling that request and unmarshalling a response.
@@ -53,11 +53,23 @@ Programs that use the **hazana** package will have several flags to control the 
                 possible values are {linear,exp2} (default exp2)
         -rps int
                 target number of requests per second, must be greater than zero (default 1)
-        -t	perform one sample call to test the attack implementation
+        -t int
+                test your attack implementation with a number of sample calls. Your program exits after this.
         -v	verbose logging
 
- # Sample verbose output
+ # Example
 
+After creating your implementation type **YourType**, then this would be the minimal program to run a load test.
+
+        func main() {
+                hazana.PrintReport(hazana.Run(YourAttack{}, hazana.ConfigFromFlags()))
+        }
+
+See **examples/zombie.go** for a complete minimal example.
+
+ # Sample verbose output from one of our services
+
+        2017/08/17 10:26:32 hazana - load runner
         2017/08/17 10:26:32 begin rampup of [10] seconds
         2017/08/17 10:26:32 setup and spawn new attacker [1]
         2017/08/17 10:26:34 current rate [1.998330838214118], target rate [1], attackers [1], mean response time [229.576185ms]

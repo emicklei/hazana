@@ -7,7 +7,7 @@ import (
 )
 
 // Perform one sample call
-// go run zombie.go -t
+// go run zombie.go -t 1
 //
 // go run zombie.go -v -rps 10
 
@@ -19,7 +19,7 @@ func (z zombieAttack) Setup(c hazana.Config) error {
 
 func (z zombieAttack) Do() hazana.DoResult {
 	time.Sleep(100 * time.Millisecond)
-	return hazana.DoResult{}
+	return hazana.DoResult{RequestLabel: "sample"}
 }
 
 func (z zombieAttack) Teardown() error {

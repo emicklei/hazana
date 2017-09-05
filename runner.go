@@ -31,9 +31,11 @@ func Run(a Attack, c Config) RunReport {
 	r.prototype = a
 
 	// do a test if the flag says so
-	if *oSample {
-		r.test()
-		return RunReport{Configuration: c}
+	if *oSample > 0 {
+		r.test(*oSample)
+		os.Exit(0)
+		// unreachable
+		return RunReport{}
 	}
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
@@ -80,20 +82,20 @@ func (r *runner) addResult(s result) result {
 	return s
 }
 
-// test uses the Attack to perform one call and report its result
+// test uses the Attack to perform {count} calls and report its result
 // it is intended for development of an Attack implementation.
-// terminates the program
-func (r *runner) test() {
+func (r *runner) test(count int) {
 	probe := r.prototype.Clone()
 	if err := probe.Setup(r.config); err != nil {
 		log.Printf("Test attack setup failed [%v]", err)
 		return
 	}
 	defer probe.Teardown()
-	now := time.Now()
-	result := probe.Do()
-	log.Printf("Test attack call in [%v] with status [%v] and error [%v]\n", time.Now().Sub(now), result.StatusCode, result.Error)
-	os.Exit(0)
+	for s := count; s > 0; s-- {
+		now := time.Now()
+		result := probe.Do()
+		log.Printf("Test attack call [%s] took [%v] with status [%v] and error [%v]\n", result.RequestLabel, time.Now().Sub(now), result.StatusCode, result.Error)
+	}
 }
 
 // run offers the complete flow of a load test.
