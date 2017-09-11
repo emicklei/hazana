@@ -2,6 +2,7 @@ package hazana
 
 import (
 	"log"
+	"math"
 	"time"
 
 	"go.uber.org/ratelimit"
@@ -76,7 +77,7 @@ func (s spawnAsWeNeedStrategy) execute(r *runner) {
 			if factor > 2.0 {
 				factor = 2.0
 			}
-			spawnAttackersToSize(r, int(float64(len(r.attackers))*factor))
+			spawnAttackersToSize(r, int(math.Ceil(float64(len(r.attackers))*factor)))
 		}
 	}
 }
