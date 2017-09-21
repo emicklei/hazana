@@ -62,4 +62,8 @@ func PrintReport(r RunReport) {
 	}
 	data, _ := json.MarshalIndent(r, "", "\t")
 	out.Write(data)
+	// if verbose and filename is given
+	if len(r.Configuration.OutputFilename) > 0 && r.Configuration.Verbose {
+		os.Stdout.Write(data)
+	}
 }
