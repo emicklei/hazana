@@ -146,8 +146,11 @@ func (r *runner) quitAttackers() {
 	if r.config.Verbose {
 		log.Printf("stopping attackers [%d]\n", len(r.attackers))
 	}
-	for _ = range r.attackers {
+	for i := range r.attackers {
 		r.quit <- true
+		if r.config.Verbose {
+			log.Println("stopped attacker ", i)
+		}
 	}
 }
 
@@ -155,9 +158,12 @@ func (r *runner) tearDownAttackers() {
 	if r.config.Verbose {
 		log.Printf("tearing down attackers [%d]\n", len(r.attackers))
 	}
-	for _, each := range r.attackers {
+	for i, each := range r.attackers {
 		if err := each.Teardown(); err != nil {
 			log.Printf("ERROR failed to teardown attacker [%v]\n", err)
+		}
+		if r.config.Verbose {
+			log.Println("teared down attacker ", i)
 		}
 	}
 }
