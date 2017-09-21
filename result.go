@@ -33,7 +33,7 @@ type RunReport struct {
 	StartedAt     time.Time           `json:"startedAt"`
 	FinishedAt    time.Time           `json:"finishedAt"`
 	Configuration Config              `json:"configuration"`
-	RunError      error               `json:"error"`
+	RunError      string              `json:"error"`
 	Metrics       map[string]*Metrics `json:"metrics"`
 }
 
@@ -42,7 +42,7 @@ func NewErrorReport(err error, config Config) RunReport {
 	return RunReport{
 		StartedAt:     time.Now(),
 		FinishedAt:    time.Now(),
-		RunError:      err,
+		RunError:      err.Error(),
 		Configuration: config,
 	}
 }
