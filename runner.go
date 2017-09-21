@@ -68,7 +68,7 @@ func (r *runner) spawnAttacker() {
 		return
 	}
 	r.attackers = append(r.attackers, attacker)
-	go attack(attacker, r.next, r.quit, r.results)
+	go attack(attacker, r.next, r.quit, r.results, r.config.timeout())
 }
 
 // addResult is called from a dedicated goroutine.

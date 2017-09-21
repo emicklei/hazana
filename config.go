@@ -30,6 +30,7 @@ type Config struct {
 	OutputFilename string            `json:"outputFilename,omitempty"`
 	Verbose        bool              `json:"verbose"`
 	Metadata       map[string]string `json:"metadata,omitempty"`
+	DoTimeoutSec   int               `json:"doTimeoutSec"`
 }
 
 // Validate checks all settings and returns a list of strings with problems.
@@ -46,7 +47,14 @@ func (c Config) Validate() (list []string) {
 	if c.MaxAttackers <= 0 {
 		list = append(list, "please set a positive maximum number of attackers")
 	}
+	if c.DoTimeoutSec <= 0 {
+		list = append(list, "please set the Do() timeout to a positive maximum number of seconds")
+	}
 	return
+}
+
+func (c Config) timeout() time.Duration {
+	return time.Duration(c.DoTimeoutSec) * time.Second
 }
 
 func (c Config) rampupStrategy() string {

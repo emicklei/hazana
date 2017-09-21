@@ -1,6 +1,7 @@
 package hazana
 
 import (
+	"errors"
 	"time"
 )
 
@@ -17,18 +18,28 @@ type Attack interface {
 	Clone() Attack
 }
 
+var AttackDoTimedOut = errors.New("Attack Do() timedout")
+
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
 // attack sends a result on the results channel after each call.
-func attack(attacker Attack, next, quit <-chan bool, results chan<- result) {
+func attack(attacker Attack, next, quit <-chan bool, results chan<- result, timeout time.Duration) {
 	for {
 		select {
 		case <-next:
 			begin := time.Now()
-			r := attacker.Do()
+			stop := make(chan DoResult)
+			go func() {
+				<-time.After(timeout)
+				stop <- DoResult{Error: AttackDoTimedOut}
+			}()
+			go func() {
+				stop <- attacker.Do()
+			}()
+			dor := <-stop
 			end := time.Now()
 			results <- result{
-				doResult: r,
+				doResult: dor,
 				begin:    begin,
 				end:      end,
 				elapsed:  end.Sub(begin),
