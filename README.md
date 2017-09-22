@@ -45,6 +45,8 @@ Programs that use the **hazana** package will have several flags to control the 
                 duration of the attack in seconds (default 60)
         -max int
                 maximum concurrent attackers (default 10)
+        -timeout int
+                timeout in seconds for an attack call (default 5)
         -o string
                 output file to write the metrics per sample request index (use stdout if empty)
         -ramp int
@@ -106,6 +108,7 @@ See **examples/zombie.go** for a complete minimal example.
                         "maxAttackers": 10,
                         "rampupStrategy" : "linear",
                         "verbose": true,
+                        "doTimeoutSec": 5,
                         "metadata": {
                                 "service" : "happiness.services.com",
                                 "environment" : "staging",
@@ -113,7 +116,7 @@ See **examples/zombie.go** for a complete minimal example.
                         }
                 },
                 "metrics": {
-                        "item.xml": {
+                        "POST item.xml": {
                                 "latencies": {
                                         "total": 3817277924,
                                         "mean": 37794830,
