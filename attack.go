@@ -18,7 +18,7 @@ type Attack interface {
 	Clone() Attack
 }
 
-var AttackDoTimedOut = errors.New("Attack Do() timedout")
+var errAttackDoTimedOut = errors.New("Attack Do() timedout")
 
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
@@ -28,15 +28,17 @@ func attack(attacker Attack, next, quit <-chan bool, results chan<- result, time
 		select {
 		case <-next:
 			begin := time.Now()
-			stop := make(chan DoResult)
+			done := make(chan DoResult)
 			go func() {
-				<-time.After(timeout)
-				stop <- DoResult{Error: AttackDoTimedOut}
+				done <- attacker.Do()
 			}()
-			go func() {
-				stop <- attacker.Do()
-			}()
-			dor := <-stop
+			var dor DoResult
+			// either get the result from the attacker or from the timeout
+			select {
+			case <-time.After(timeout):
+				dor = DoResult{Error: errAttackDoTimedOut}
+			case dor = <-done:
+			}
 			end := time.Now()
 			results <- result{
 				doResult: dor,

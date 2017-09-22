@@ -10,4 +10,7 @@ func TestLoadConfig(t *testing.T) {
 	if c.RampupTimeSec != 10 {
 		t.Error("expected RPS 10")
 	}
+	if c.DoTimeoutSec != 5 {
+		t.Error("expected timeout 5")
+	}
 }

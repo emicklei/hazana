@@ -15,8 +15,9 @@ var (
 	oMaxAttackers       = flag.Int("max", 10, "maximum concurrent attackers")
 	oOutput             = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
 	oVerbose            = flag.Bool("v", false, "verbose logging")
-	oSample             = flag.Int("t", 0, "test your attack implementation with a number of sample calls. Your program exits after this.")
-	oRampupStrategy     = flag.String("s", defaultRampupStrategy, "possible values are {linear,exp2}")
+	oSample             = flag.Int("t", 0, "test your attack implementation with a number of sample calls. Your program exits after this")
+	oRampupStrategy     = flag.String("s", defaultRampupStrategy, "set the rampup strategy, possible values are {linear,exp2}")
+	oDoTimeout          = flag.Int("timeout", 5, "timeout in seconds for each attack call")
 	fullAttackStartedAt time.Time
 )
 
@@ -53,6 +54,7 @@ func (c Config) Validate() (list []string) {
 	return
 }
 
+// timeout is in seconds
 func (c Config) timeout() time.Duration {
 	return time.Duration(c.DoTimeoutSec) * time.Second
 }
@@ -76,17 +78,18 @@ func ConfigFromFlags() Config {
 		MaxAttackers:   *oMaxAttackers,
 		OutputFilename: *oOutput,
 		Metadata:       map[string]string{},
+		DoTimeoutSec:   *oDoTimeout,
 	}
 }
 
 // ConfigFromFile loads a Config for use in a runner.
-func ConfigFromFile(named string) (c Config) {
-	flag.Parse() // always parse flags
+func ConfigFromFile(named string) Config {
+	c := ConfigFromFlags()
 	f, err := os.Open(named)
 	if err != nil {
 		log.Fatal("unable to read configuration", err)
 	}
 	defer f.Close()
 	json.NewDecoder(f).Decode(&c)
-	return
+	return c
 }

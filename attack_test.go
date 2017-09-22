@@ -39,7 +39,7 @@ func TestAttackTimeout(t *testing.T) {
 	next <- true
 	r := <-results
 	quit <- true
-	if got, want := r.doResult.Error, AttackDoTimedOut; got != want {
+	if got, want := r.doResult.Error, errAttackDoTimedOut; got != want {
 		t.Fatalf("got %v want %v", got, want)
 	}
 }
