@@ -52,7 +52,7 @@ Programs that use the **hazana** package will have several flags to control the 
         -ramp int
                 ramp up time in seconds (default 10)
         -s string
-                possible values are {linear,exp2} (default exp2)
+                set the rampup strategy, possible values are {linear,exp2}
         -rps int
                 target number of requests per second, must be greater than zero (default 1)
         -t int
@@ -139,5 +139,8 @@ See **examples/zombie.go** for a complete minimal example.
                 }
         }
 
+# Stackdriver integration
+
+The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriver-monitoring) project offers a tool to send the results of a loadtest to a Google Stackdriver account. The metrics from the load test are sent as custom metrics to Stackdriver Monitoring. The report itseld is sent as a log entry to Stackdriver Logging.
 
 © 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
