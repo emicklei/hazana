@@ -90,6 +90,18 @@ func ConfigFromFile(named string) Config {
 		log.Fatal("unable to read configuration", err)
 	}
 	defer f.Close()
-	json.NewDecoder(f).Decode(&c)
+	err = json.NewDecoder(f).Decode(&c)
+	if err != nil {
+		log.Fatal("unable to decode configuration", err)
+	}
 	return c
+}
+
+// GetEnv returns the environment variable value or absentValue if it is missing
+func GetEnv(key, absentValue string) string {
+	v := os.Getenv(key)
+	if len(v) == 0 {
+		return absentValue
+	}
+	return v
 }
