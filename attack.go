@@ -10,11 +10,11 @@ type Attack interface {
 	// Setup should establish the connection to the service
 	// It may want to access the config of the runner.
 	Setup(c Config) error
-	// Do performs one request and is executed in one fixed goroutine.
+	// Do performs one request and is executed in a separate goroutine.
 	Do() DoResult
-	// Teardown should close the connection of the service
+	// Teardown can be used to close the connection to the service
 	Teardown() error
-	// Clone should return a new fresh Attack
+	// Clone should return a fresh new Attack
 	Clone() Attack
 }
 

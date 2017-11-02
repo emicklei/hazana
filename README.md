@@ -8,22 +8,21 @@ Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send
 
 ### Attack
 
-    // Attack must be implemented by a service client.
-    type Attack interface {
-
-        // Setup should establish the connection to the service
-        // It may want to access the config of the runner.
-        Setup(c Config) error
-
-        // Do performs one request and is executed in one fixed goroutine.
-        Do() DoResult
-
-        // Teardown should close the connection of the service
-        Teardown() error
-
-        // Clone should return a new fresh Attack
-        Clone() Attack
-    }
+        // Attack must be implemented by a service client.
+        type Attack interface {
+                // Setup should establish the connection to the service
+                // It may want to access the config of the runner.
+                Setup(c Config) error
+                
+                // Do performs one request and is executed in a separate goroutine.
+                Do() DoResult
+                
+                // Teardown can be used to close the connection to the service
+                Teardown() error
+                
+                // Clone should return a fresh new Attack
+                Clone() Attack
+        }
     
 The **hazana** runner will spawn goroutines to meet this load.
 Each goroutine will use one Attack value to perform the communication ( see **Do()** ).
@@ -86,7 +85,9 @@ In addition to using flags, you can load the configuration from a JSON file. Val
 
 See **examples/zombie.go** for a complete minimal example.
 
- # Sample verbose output from one of our services
+See **examples/clock** for an actual gRPC service that can tell time under load.
+
+### Sample verbose output from one of our services
 
         2017/08/17 10:26:32 hazana - load runner
         2017/08/17 10:26:32 begin rampup of [10] seconds
