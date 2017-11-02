@@ -4,8 +4,7 @@
 
 Hazana is created for load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any supported language). In addition, by providing the Attack interface, any client and protocol could potentially be tested with this package.
 
-Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use client code to perform the request. 
-Consequently, time to send a request and receive a response includes time spent on marshalling that request and unmarshalling a response.
+Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use of client code to send the requests and receive the response.
 
 ### Attack
 
@@ -59,12 +58,30 @@ Programs that use the **hazana** package will have several flags to control the 
                 test your attack implementation with a number of sample calls. Your program exits after this.
         -v	verbose logging
 
- # Example
+#### Example
 
-After creating your implementation type **YourType**, then this would be the minimal program to run a load test.
+After creating your implementation type **YourAttack** then this would be the minimal program to run a load test.
 
         func main() {
                 hazana.PrintReport(hazana.Run(YourAttack{}, hazana.ConfigFromFlags()))
+        }
+
+### Configuration
+In addition to using flags, you can load the configuration from a JSON file. Values set with flags will override those from the configuration file.
+
+        {
+        "RPS": 10,
+        "AttackTimeSec": 20,
+        "RampupTimeSec": 10,
+        "MaxAttackers": 10,
+        "OutputFilename": "myconfig.json",
+        "Verbose": true
+        }
+
+#### Example
+
+        func main() {
+                hazana.PrintReport(hazana.Run(YourAttack{}, hazana.ConfigFromFile("myconfig.json")))
         }
 
 See **examples/zombie.go** for a complete minimal example.
@@ -139,7 +156,7 @@ See **examples/zombie.go** for a complete minimal example.
                 }
         }
 
-# Stackdriver integration
+### Stackdriver integration
 
 The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriver-monitoring) project offers a tool to send the results of a loadtest to a Google Stackdriver account. The metrics from the load test are sent as custom metrics to Stackdriver Monitoring. The report itseld is sent as a log entry to Stackdriver Logging.
 

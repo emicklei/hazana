@@ -8,18 +8,31 @@ import (
 	"time"
 )
 
-var (
-	oRPS                = flag.Int("rps", 1, "target number of requests per second, must be greater than zero")
-	oAttackTime         = flag.Int("attack", 60, "duration of the attack in seconds")
-	oRampupTime         = flag.Int("ramp", 10, "ramp up time in seconds")
-	oMaxAttackers       = flag.Int("max", 10, "maximum concurrent attackers")
-	oOutput             = flag.String("o", "", "output file to write the metrics per sample request index (use stdout if empty)")
-	oVerbose            = flag.Bool("v", false, "verbose logging")
-	oSample             = flag.Int("t", 0, "test your attack implementation with a number of sample calls. Your program exits after this")
-	oRampupStrategy     = flag.String("s", defaultRampupStrategy, "set the rampup strategy, possible values are {linear,exp2}")
-	oDoTimeout          = flag.Int("timeout", 5, "timeout in seconds for each attack call")
-	fullAttackStartedAt time.Time
+const (
+	fRPS            = "rps"
+	fAttackTime     = "attack"
+	fRampupTime     = "ramp"
+	fMaxAttackers   = "max"
+	fOutput         = "o"
+	fVerbose        = "v"
+	fSample         = "t"
+	fRampupStrategy = "s"
+	fDoTimeout      = "timeout"
 )
+
+var (
+	oRPS            = flag.Int(fRPS, 1, "target number of requests per second, must be greater than zero")
+	oAttackTime     = flag.Int(fAttackTime, 60, "duration of the attack in seconds")
+	oRampupTime     = flag.Int(fRampupTime, 10, "ramp up time in seconds")
+	oMaxAttackers   = flag.Int(fMaxAttackers, 10, "maximum concurrent attackers")
+	oOutput         = flag.String(fOutput, "", "output file to write the metrics per sample request index (use stdout if empty)")
+	oVerbose        = flag.Bool(fVerbose, false, "verbose logging")
+	oSample         = flag.Int(fSample, 0, "test your attack implementation with a number of sample calls. Your program exits after this")
+	oRampupStrategy = flag.String(fRampupStrategy, defaultRampupStrategy, "set the rampup strategy, possible values are {linear,exp2}")
+	oDoTimeout      = flag.Int(fDoTimeout, 5, "timeout in seconds for each attack call")
+)
+
+var fullAttackStartedAt time.Time
 
 // Config holds settings for a Runner.
 type Config struct {
@@ -68,7 +81,7 @@ func (c Config) rampupStrategy() string {
 
 // ConfigFromFlags creates a Config for use in a runner.
 func ConfigFromFlags() Config {
-	flag.Parse() // always parse flags
+	flag.Parse()
 	return Config{
 		RPS:            *oRPS,
 		AttackTimeSec:  *oAttackTime,
@@ -84,7 +97,7 @@ func ConfigFromFlags() Config {
 
 // ConfigFromFile loads a Config for use in a runner.
 func ConfigFromFile(named string) Config {
-	c := ConfigFromFlags()
+	c := ConfigFromFlags() // always parse flags
 	f, err := os.Open(named)
 	if err != nil {
 		log.Fatal("unable to read configuration", err)
@@ -94,7 +107,30 @@ func ConfigFromFile(named string) Config {
 	if err != nil {
 		log.Fatal("unable to decode configuration", err)
 	}
+	applyFlagOverrides(&c)
 	return c
+}
+
+// override with any flag set
+func applyFlagOverrides(c *Config) {
+	flag.Visit(func(each *flag.Flag) {
+		switch each.Name {
+		case fRPS:
+			c.RPS = *oRPS
+		case fAttackTime:
+			c.AttackTimeSec = *oAttackTime
+		case fRampupTime:
+			c.RampupTimeSec = *oRampupTime
+		case fVerbose:
+			c.Verbose = *oVerbose
+		case fMaxAttackers:
+			c.MaxAttackers = *oMaxAttackers
+		case fOutput:
+			c.OutputFilename = *oOutput
+		case fDoTimeout:
+			c.DoTimeoutSec = *oDoTimeout
+		}
+	})
 }
 
 // GetEnv returns the environment variable value or absentValue if it is missing
