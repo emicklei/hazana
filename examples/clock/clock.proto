@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package main;
+
+service ClockService {
+    rpc GetTime (GetTimeRequest) returns (GetTimeResponse){}
+}
+
+message GetTimeRequest {
+    string timezone = 1;
+}
+
+message GetTimeResponse {
+    string formattedTime = 1;
+}
