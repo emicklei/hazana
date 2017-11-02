@@ -74,7 +74,7 @@ In addition to using flags, you can load the configuration from a JSON file. Val
         "AttackTimeSec": 20,
         "RampupTimeSec": 10,
         "MaxAttackers": 10,
-        "OutputFilename": "myconfig.json",
+        "OutputFilename": "myreport.json",
         "Verbose": true
         }
 
