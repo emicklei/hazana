@@ -15,6 +15,7 @@ type Attack interface {
 	// Teardown can be used to close the connection to the service
 	Teardown() error
 	// Clone should return a fresh new Attack
+	// Make sure the new Attack has values for shared struct fields initialized at Setup.
 	Clone() Attack
 }
 

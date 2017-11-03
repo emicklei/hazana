@@ -17,10 +17,11 @@ Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send
                 // Do performs one request and is executed in a separate goroutine.
                 Do() DoResult
                 
-                // Teardown can be used to close the connection to the service
+                // Teardown can be used to close the connection to the service.
                 Teardown() error
                 
                 // Clone should return a fresh new Attack
+                // Make sure the new Attack has values for shared struct fields initialized at Setup.
                 Clone() Attack
         }
     
