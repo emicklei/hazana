@@ -50,9 +50,9 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 		rps = 1
 	}
 	limiter := ratelimit.New(rps)
-	oneSecond := time.Now().Add(time.Duration(1 * time.Second))
+	oneSecondAhead := time.Now().Add(time.Duration(1 * time.Second))
 	// put the attackers to work
-	for time.Now().Before(oneSecond) {
+	for time.Now().Before(oneSecondAhead) {
 		limiter.Take()
 		r.next <- true
 	}
