@@ -67,3 +67,18 @@ func PrintReport(r RunReport) {
 		os.Stdout.Write(data)
 	}
 }
+
+// PrintSummary logs a subset of the report for each metric label
+func PrintSummary(r RunReport) {
+	for k, v := range r.Metrics {
+		log.Println("---------")
+		log.Println(k)
+		log.Println("- - - - -")
+		log.Println("requests:", v.Requests)
+		log.Println("     rps:", v.Rate)
+		log.Println("    mean:", v.Latencies.Mean)
+		log.Println("    95th:", v.Latencies.P95)
+		log.Println("     max:", v.Latencies.Max)
+		log.Println("  errors:", len(v.Errors))
+	}
+}

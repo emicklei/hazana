@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	hazana.PrintReport(hazana.Run(new(clockAttack), hazana.ConfigFromFlags()))
+	hazana.PrintSummary(hazana.Run(new(clockAttack), hazana.ConfigFromFlags()))
 }
 
 type clockAttack struct {

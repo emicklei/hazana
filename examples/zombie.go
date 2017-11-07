@@ -31,5 +31,7 @@ func (z zombieAttack) Clone() hazana.Attack {
 }
 
 func main() {
-	hazana.PrintReport(hazana.Run(zombieAttack{}, hazana.ConfigFromFlags()))
+	r := hazana.Run(zombieAttack{}, hazana.ConfigFromFlags())
+	hazana.PrintReport(r)
+	hazana.PrintSummary(r)
 }
