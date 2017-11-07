@@ -1,6 +1,7 @@
 # hazana - package for creating load tests of services
 
 [![Build Status](https://travis-ci.org/emicklei/hazana.png)](https://travis-ci.org/emicklei/hazana)
+[![GoDoc](https://godoc.org/github.com/emicklei/hazana?status.svg)](https://godoc.org/github.com/emicklei/hazana)
 
 Hazana is created for load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any supported language). In addition, by providing the Attack interface, any client and protocol could potentially be tested with this package.
 
