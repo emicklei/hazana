@@ -27,8 +27,8 @@ func (c *clockAttack) Setup(hc hazana.Config) error {
 	return nil
 }
 
-func (c *clockAttack) Do() hazana.DoResult {
-	_, err := c.client.GetTime(context.Background(), new(GetTimeRequest))
+func (c *clockAttack) Do(ctx context.Context) hazana.DoResult {
+	_, err := c.client.GetTime(ctx, new(GetTimeRequest))
 	if err != nil {
 		return hazana.DoResult{Error: err}
 	}

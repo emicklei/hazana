@@ -16,7 +16,8 @@ Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send
                 Setup(c Config) error
                 
                 // Do performs one request and is executed in a separate goroutine.
-                Do() DoResult
+                // The context is used to cancel the request on timeout.
+                Do(ctx context.Context) DoResult
                 
                 // Teardown can be used to close the connection to the service.
                 Teardown() error

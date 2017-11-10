@@ -1,6 +1,7 @@
 package hazana
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -93,7 +94,7 @@ func (r *runner) test(count int) {
 	defer probe.Teardown()
 	for s := count; s > 0; s-- {
 		now := time.Now()
-		result := probe.Do()
+		result := probe.Do(context.Background())
 		log.Printf("Test attack call [%s] took [%v] with status [%v] and error [%v]\n", result.RequestLabel, time.Now().Sub(now), result.StatusCode, result.Error)
 	}
 }

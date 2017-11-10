@@ -1,6 +1,7 @@
 package hazana
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -11,7 +12,8 @@ type Attack interface {
 	// It may want to access the config of the runner.
 	Setup(c Config) error
 	// Do performs one request and is executed in a separate goroutine.
-	Do() DoResult
+	// The context is used to cancel the request on timeout.
+	Do(ctx context.Context) DoResult
 	// Teardown can be used to close the connection to the service
 	Teardown() error
 	// Clone should return a fresh new Attack
@@ -19,7 +21,7 @@ type Attack interface {
 	Clone() Attack
 }
 
-var errAttackDoTimedOut = errors.New("Attack Do() timedout")
+var errAttackDoTimedOut = errors.New("Attack Do(ctx) timedout")
 
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
@@ -30,13 +32,15 @@ func attack(attacker Attack, next, quit <-chan bool, results chan<- result, time
 		case <-next:
 			begin := time.Now()
 			done := make(chan DoResult)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
 			go func() {
-				done <- attacker.Do()
+				done <- attacker.Do(ctx)
 			}()
 			var dor DoResult
 			// either get the result from the attacker or from the timeout
 			select {
-			case <-time.After(timeout):
+			case <-ctx.Done():
 				dor = DoResult{Error: errAttackDoTimedOut}
 			case dor = <-done:
 			}

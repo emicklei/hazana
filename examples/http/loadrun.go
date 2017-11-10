@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"net/http"
+
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/emicklei/hazana"
 )
@@ -19,8 +22,8 @@ func (a *siteAttack) Setup(hc hazana.Config) error {
 	return nil
 }
 
-func (a *siteAttack) Do() hazana.DoResult {
-	_, err := a.client.Get("http://ubanita.org")
+func (a *siteAttack) Do(ctx context.Context) hazana.DoResult {
+	_, err := ctxhttp.Get(ctx, a.client, "http://ubanita.org")
 	if err != nil {
 		return hazana.DoResult{Error: err}
 	}

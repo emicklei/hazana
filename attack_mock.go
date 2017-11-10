@@ -1,6 +1,9 @@
 package hazana
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type attackMock struct {
 	sleep time.Duration
@@ -10,7 +13,7 @@ func (m *attackMock) Setup(c Config) error {
 	return nil
 }
 
-func (m *attackMock) Do() DoResult {
+func (m *attackMock) Do(ctx context.Context) DoResult {
 	time.Sleep(m.sleep)
 	return DoResult{}
 }
