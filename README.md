@@ -36,7 +36,7 @@ The **hazana** runner will use a rampup period in which the RPS is increased (ev
 The **linear** rampup strategy will create exactly the maximum number of goroutines within the rampup period. 
 The **exp2** strategy spawn goroutines as needed (exponential with max factor of 2) to match the current rps load during.
  
-![](hazana.png)
+![](hazana_profile.png)
 
 ### Flags
 Programs that use the **hazana** package will have several flags to control the load runner.

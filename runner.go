@@ -128,7 +128,7 @@ func (r *runner) fullAttack() {
 func (r *runner) rampUp() {
 	strategy := r.config.rampupStrategy()
 	if r.config.Verbose {
-		log.Printf("begin rampup of [%d] seconds using strategy [%s]\n", r.config.RampupTimeSec, strategy)
+		log.Printf("begin rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds using strategy [%s]\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec, strategy)
 	}
 	switch strategy {
 	case "linear":

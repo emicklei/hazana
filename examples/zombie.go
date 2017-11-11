@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/emicklei/hazana"
@@ -17,7 +18,7 @@ func (z zombieAttack) Setup(c hazana.Config) error {
 	return nil
 }
 
-func (z zombieAttack) Do() hazana.DoResult {
+func (z zombieAttack) Do(ctx context.Context) hazana.DoResult {
 	time.Sleep(100 * time.Millisecond)
 	return hazana.DoResult{RequestLabel: "sample"}
 }
