@@ -3,42 +3,45 @@
 [![Build Status](https://travis-ci.org/emicklei/hazana.png)](https://travis-ci.org/emicklei/hazana)
 [![GoDoc](https://godoc.org/github.com/emicklei/hazana?status.svg)](https://godoc.org/github.com/emicklei/hazana)
 
-Hazana is created for load tests that use (generated) gRPC clients in Go to communicate to gRPC services (in any supported language). In addition, by providing the Attack interface, any client and protocol could potentially be tested with this package.
+Hazana is created for load tests that use (generated) clients in Go to communicate to services (in any supported language).
+By providing the Attack interface, any client and protocol could potentially be tested with this package.
+This package was created to load test gRPC services.
 
 Compared to existing HTTP load testing tools (e.g. tsenart/vegeta) that can send raw HTTP requests, this package requires the use of client code to send the requests and receive the response.
 
-### Attack
+## Attack
 
         // Attack must be implemented by a service client.
         type Attack interface {
                 // Setup should establish the connection to the service
                 // It may want to access the config of the runner.
                 Setup(c Config) error
-                
+
                 // Do performs one request and is executed in a separate goroutine.
                 // The context is used to cancel the request on timeout.
                 Do(ctx context.Context) DoResult
-                
+
                 // Teardown can be used to close the connection to the service.
                 Teardown() error
-                
+
                 // Clone should return a fresh new Attack
                 // Make sure the new Attack has values for shared struct fields initialized at Setup.
                 Clone() Attack
         }
-    
 The **hazana** runner will spawn goroutines to meet this load.
 Each goroutine will use one Attack value to perform the communication ( see **Do()** ).
 Typically each Attack value uses its own connection but your implementation can use another strategy.
 
 ### Rampup
+
 The **hazana** runner will use a rampup period in which the RPS is increased (every second) during the rampup time. In this phase, new goroutines are spawned up to the given maximum. This package has two strategies for adding new attackers to meet the rps.
 The **linear** rampup strategy will create exactly the maximum number of goroutines within the rampup period. 
 The **exp2** strategy spawn goroutines as needed (exponential with max factor of 2) to match the current rps load during.
- 
+
 ![](hazana_profile.png)
 
 ### Flags
+
 Programs that use the **hazana** package will have several flags to control the load runner.
 
     Usage of <<your load test program>>:
@@ -58,7 +61,7 @@ Programs that use the **hazana** package will have several flags to control the 
                 target number of requests per second, must be greater than zero (default 1)
         -t int
                 test your attack implementation with a number of sample calls. Your program exits after this.
-        -v	verbose logging
+        -v verbose logging
 
 #### Example
 
@@ -69,6 +72,7 @@ After creating your implementation type **YourAttack** then this would be the mi
         }
 
 ### Configuration
+
 In addition to using flags, you can load the configuration from a JSON file. Values set with flags will override those from the configuration file.
 
         {

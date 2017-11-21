@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"time"
 
 	"go.uber.org/ratelimit"
@@ -26,6 +27,7 @@ type runner struct {
 func Run(a Attack, c Config) RunReport {
 	if c.Verbose {
 		log.Println("hazana - load runner")
+		log.Printf("available logical CPU [%d]\n", runtime.NumCPU())
 	}
 	r := new(runner)
 	r.config = c
