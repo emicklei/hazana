@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 
+	"context"
+
 	"github.com/emicklei/hazana"
-	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
 )
 

@@ -58,6 +58,22 @@ type (
 	}
 )
 
+func (m Metrics) successLogEntry() int {
+	s := int(m.Success * 100.0)
+	if s < 0 {
+		return 0
+	}
+	return s
+}
+
+func (m Metrics) meanLogEntry() time.Duration {
+	lm := m.Latencies.Mean
+	if lm < 0 {
+		return time.Duration(0)
+	}
+	return time.Duration(lm)
+}
+
 func (m *Metrics) add(r result) {
 	m.init()
 
