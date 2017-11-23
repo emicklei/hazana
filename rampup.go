@@ -39,6 +39,11 @@ func spawnAttackersToSize(r *runner, count int) {
 func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	// collect metrics for each second
 	rampMetrics := new(Metrics)
+	// rampup can only proceed when at least one attacker is waiting for rps tokens
+	if len(r.attackers) == 0 {
+		log.Println("no attackers available to start rampup or full attack")
+		return 0, rampMetrics
+	}
 	// change pipeline function to collect local metrics
 	r.resultsPipeline = func(rs result) result {
 		rampMetrics.add(rs)
@@ -61,7 +66,7 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 
 	if r.config.Verbose {
 		log.Printf("rate [%4f -> %v], mean response [%v], requests [%d], attackers [%d], % success [%d]\n",
-			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry)
+			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry())
 	}
 	return rps, rampMetrics
 }

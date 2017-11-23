@@ -27,7 +27,7 @@ type runner struct {
 func Run(a Attack, c Config) RunReport {
 	if c.Verbose {
 		log.Println("hazana - load runner")
-		log.Printf("available logical CPU [%d]\n", runtime.NumCPU())
+		log.Printf("available logical CPUs [%d]\n", runtime.NumCPU())
 	}
 	r := new(runner)
 	r.config = c
@@ -42,7 +42,7 @@ func Run(a Attack, c Config) RunReport {
 	}
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
-			fmt.Println("[config error]", each)
+			fmt.Println("a configuration error was found", each)
 		}
 		fmt.Println()
 		flag.Usage()
@@ -90,14 +90,14 @@ func (r *runner) addResult(s result) result {
 func (r *runner) test(count int) {
 	probe := r.prototype.Clone()
 	if err := probe.Setup(r.config); err != nil {
-		log.Printf("Test attack setup failed [%v]", err)
+		log.Printf("test attack setup failed [%v]", err)
 		return
 	}
 	defer probe.Teardown()
 	for s := count; s > 0; s-- {
 		now := time.Now()
 		result := probe.Do(context.Background())
-		log.Printf("Test attack call [%s] took [%v] with status [%v] and error [%v]\n", result.RequestLabel, time.Now().Sub(now), result.StatusCode, result.Error)
+		log.Printf("test attack call [%s] took [%v] with status [%v] and error [%v]\n", result.RequestLabel, time.Now().Sub(now), result.StatusCode, result.Error)
 	}
 }
 
@@ -112,6 +112,11 @@ func (r *runner) run() RunReport {
 }
 
 func (r *runner) fullAttack() {
+	// attack can only proceed when at least one attacker is waiting for rps tokens
+	if len(r.attackers) == 0 {
+		// rampup probably has failed too
+		return
+	}
 	if r.config.Verbose {
 		log.Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
 	}
@@ -160,7 +165,7 @@ func (r *runner) tearDownAttackers() {
 	}
 	for i, each := range r.attackers {
 		if err := each.Teardown(); err != nil {
-			log.Printf("ERROR failed to teardown attacker [%d]:%v\n", i, err)
+			log.Printf("failed to teardown attacker [%d]:%v\n", i, err)
 		}
 	}
 }
