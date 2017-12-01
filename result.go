@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -49,6 +50,12 @@ func NewErrorReport(err error, config Config) RunReport {
 
 // PrintReport writes the JSON report to a file or stdout, depending on the configuration.
 func PrintReport(r RunReport) {
+	// make secrets in Metadata unreadable
+	for k := range r.Configuration.Metadata {
+		if strings.HasSuffix(k, "*") {
+			r.Configuration.Metadata[k] = "***---***---***"
+		}
+	}
 	var out io.Writer
 	if len(r.Configuration.OutputFilename) > 0 {
 		file, err := os.Create(r.Configuration.OutputFilename)
