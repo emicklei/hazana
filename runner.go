@@ -26,8 +26,8 @@ type runner struct {
 // Return a report with statistics per sample and the configuration used.
 func Run(a Attack, c Config) RunReport {
 	if c.Verbose {
-		log.Println("hazana - load runner")
-		log.Printf("available logical CPUs [%d]\n", runtime.NumCPU())
+		log.Println("** hazana - load runner **")
+		log.Printf("[%d] available logical CPUs\n", runtime.NumCPU())
 	}
 	r := new(runner)
 	r.config = c
@@ -179,6 +179,7 @@ func (r *runner) reportMetrics() RunReport {
 		FinishedAt:    time.Now(),
 		Configuration: r.config,
 		Metrics:       r.metrics,
+		Output:        map[string]interface{}{},
 	}
 }
 

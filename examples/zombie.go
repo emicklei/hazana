@@ -33,6 +33,7 @@ func (z zombieAttack) Clone() hazana.Attack {
 
 func main() {
 	r := hazana.Run(zombieAttack{}, hazana.ConfigFromFlags())
+	r.Output["survived"] = false
 	hazana.PrintReport(r)
 	hazana.PrintSummary(r)
 }

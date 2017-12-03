@@ -82,12 +82,12 @@ In addition to using flags, you can load the configuration from a JSON file. Val
                 "MaxAttackers": 10,
                 "OutputFilename": "myreport.json",
                 "Verbose": true,
-                        "Metadata": {
-                                "service" : "happiness.services.com",
-                                "environment" : "staging",
-                                "version": "v1.42",
-                                "apiToken*": "your-secret-token"
-                        }
+                "Metadata": {
+                        "service" : "happiness.services.com",
+                        "environment" : "staging",
+                        "version": "v1.42",
+                        "apiToken*": "your-secret-token"
+                }
         }
 
 _Note that metadata keys that end with * will be obfuscated when reporting_. 

@@ -29,13 +29,17 @@ type DoResult struct {
 	BytesOut int64
 }
 
-// RunReport is an composition of configuration and measurements from a load run.
+// RunReport is a composition of configuration, measurements and custom output from a load run.
 type RunReport struct {
-	StartedAt     time.Time           `json:"startedAt"`
-	FinishedAt    time.Time           `json:"finishedAt"`
-	Configuration Config              `json:"configuration"`
-	RunError      string              `json:"error"`
-	Metrics       map[string]*Metrics `json:"metrics"`
+	StartedAt     time.Time `json:"startedAt"`
+	FinishedAt    time.Time `json:"finishedAt"`
+	Configuration Config    `json:"configuration"`
+	// RunError is set when a Run could not be called or executed.
+	RunError string              `json:"runError"`
+	Metrics  map[string]*Metrics `json:"metrics"`
+	// Use this field to publish your custom output in the report.
+	// E.g whether the run was succesful according to your thresholds (rps,meantime,%errors)
+	Output map[string]interface{} `json:"output"`
 }
 
 // NewErrorReport returns a report when a Run could not be called or executed.
@@ -45,6 +49,7 @@ func NewErrorReport(err error, config Config) RunReport {
 		FinishedAt:    time.Now(),
 		RunError:      err.Error(),
 		Configuration: config,
+		Output:        map[string]interface{}{},
 	}
 }
 
@@ -86,6 +91,6 @@ func PrintSummary(r RunReport) {
 		log.Println("    mean:", v.Latencies.Mean)
 		log.Println("    95th:", v.Latencies.P95)
 		log.Println("     max:", v.Latencies.Max)
-		log.Println("  errors:", len(v.Errors))
+		log.Println(" success:", v.successLogEntry(), "%")
 	}
 }

@@ -65,7 +65,7 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	rampMetrics.updateLatencies()
 
 	if r.config.Verbose {
-		log.Printf("rate [%4f -> %v], mean response [%v], requests [%d], attackers [%d], %% success [%d]\n",
+		log.Printf("rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
 			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry())
 	}
 	return rps, rampMetrics
