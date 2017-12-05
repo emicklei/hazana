@@ -37,8 +37,9 @@ type RunReport struct {
 	// RunError is set when a Run could not be called or executed.
 	RunError string              `json:"runError"`
 	Metrics  map[string]*Metrics `json:"metrics"`
-	// Use this field to publish your custom output in the report.
-	// E.g whether the run was succesful according to your thresholds (rps,meantime,%errors)
+	// Failed can be set by your load test program to indicate that the results are not acceptable.
+	Failed bool `json:"failed"`
+	// Output is used to publish any custom output in the report.
 	Output map[string]interface{} `json:"output"`
 }
 
@@ -49,6 +50,7 @@ func NewErrorReport(err error, config Config) RunReport {
 		FinishedAt:    time.Now(),
 		RunError:      err.Error(),
 		Configuration: config,
+		Failed:        true, // clearly the run was not acceptable
 		Output:        map[string]interface{}{},
 	}
 }

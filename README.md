@@ -68,7 +68,13 @@ Programs that use the **hazana** package will have several flags to control the 
 After creating your implementation type **YourAttack** then this would be the minimal program to run a load test.
 
         func main() {
-                hazana.PrintReport(hazana.Run(YourAttack{}, hazana.ConfigFromFlags()))
+                r := hazana.Run(new(YourAttack), hazana.ConfigFromFlags())
+
+                // inspect the report and compute whether the test has failed
+                // e.g by looking at the success percentage and mean response time of each metric.
+                r.Failed = false
+
+                hazana.PrintReport(r)
         }
 
 ### Configuration
@@ -95,7 +101,9 @@ _Note that metadata keys that end with * will be obfuscated when reporting_.
 #### Example
 
         func main() {
-                hazana.PrintReport(hazana.Run(YourAttack{}, hazana.ConfigFromFile("myconfig.json")))
+                r := hazana.Run(YourAttack{}, hazana.ConfigFromFile("myconfig.json"))
+                hazana.PrintReport(r)
+                hazana.PrintSummary(r)
         }
 
 See **examples/zombie.go** for a complete minimal example.
@@ -170,7 +178,8 @@ See **examples/clock** for an actual gRPC service that can tell time under load.
                                 "status_codes": null,
                                 "errors": null
                         }
-                }
+                },
+                "failed":false
         }
 
 ### Stackdriver integration

@@ -12,6 +12,9 @@ import (
 func TestLoadRunReportWithError(t *testing.T) {
 	f := filepath.Join(os.TempDir(), "report.json")
 	r := NewErrorReport(errors.New("something broke"), Config{OutputFilename: f})
+	if !r.Failed {
+		t.Error("expected failed run")
+	}
 	PrintReport(r)
 	data, _ := ioutil.ReadFile(f)
 	b := RunReport{}

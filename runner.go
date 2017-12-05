@@ -179,6 +179,7 @@ func (r *runner) reportMetrics() RunReport {
 		FinishedAt:    time.Now(),
 		Configuration: r.config,
 		Metrics:       r.metrics,
+		Failed:        false, // must be overwritten by program
 		Output:        map[string]interface{}{},
 	}
 }
