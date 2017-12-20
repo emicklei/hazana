@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/emicklei/hazana"
@@ -29,6 +30,18 @@ func (z zombieAttack) Teardown() error {
 
 func (z zombieAttack) Clone() hazana.Attack {
 	return z
+}
+
+// optional you can implement RunLifecycle methods
+func (z zombieAttack) BeforeRun(c hazana.Config) error {
+	log.Println("before run")
+	return nil
+}
+
+// optional you can implement RunLifecycle methods
+func (z zombieAttack) AfterRun() error {
+	log.Println("after run")
+	return nil
 }
 
 func main() {

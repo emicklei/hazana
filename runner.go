@@ -12,6 +12,12 @@ import (
 	"go.uber.org/ratelimit"
 )
 
+// RunLifecycle can be used to implement hooks in your Attacker to setup and teardown for the complete run.
+type RunLifecycle interface {
+	BeforeRun(c Config) error
+	AfterRun() error
+}
+
 type runner struct {
 	config          Config
 	attackers       []Attack
@@ -33,13 +39,7 @@ func Run(a Attack, c Config) RunReport {
 	r.config = c
 	r.prototype = a
 
-	// do a test if the flag says so
-	if *oSample > 0 {
-		r.test(*oSample)
-		os.Exit(0)
-		// unreachable
-		return RunReport{}
-	}
+	// validate the configuration
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
 			fmt.Println("a configuration error was found", each)
@@ -47,6 +47,26 @@ func Run(a Attack, c Config) RunReport {
 		fmt.Println()
 		flag.Usage()
 		os.Exit(0)
+	}
+
+	// is the attacker interested in the run lifecycle?
+	if lifecycler, ok := a.(RunLifecycle); ok {
+		if err := lifecycler.BeforeRun(c); err != nil {
+			log.Fatalln("BeforeRun failed", err)
+		}
+		defer func() {
+			if err := lifecycler.AfterRun(); err != nil {
+				log.Fatalln("AfterRun failed", err)
+			}
+		}()
+	}
+
+	// do a test if the flag says so
+	if *oSample > 0 {
+		r.test(*oSample)
+		os.Exit(0)
+		// unreachable
+		return RunReport{}
 	}
 	r.init()
 	return r.run()
