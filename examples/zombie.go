@@ -32,21 +32,21 @@ func (z zombieAttack) Clone() hazana.Attack {
 	return z
 }
 
-// optional you can implement RunLifecycle methods
+// optional you can implement BeforeRunAware
 func (z zombieAttack) BeforeRun(c hazana.Config) error {
 	log.Println("before run")
 	return nil
 }
 
-// optional you can implement RunLifecycle methods
-func (z zombieAttack) AfterRun() error {
+// optional you can implement AfterRunAware
+func (z zombieAttack) AfterRun(r *hazana.RunReport) error {
 	log.Println("after run")
+	r.Failed = true // he survived
 	return nil
 }
 
 func main() {
 	r := hazana.Run(new(zombieAttack), hazana.ConfigFromFlags())
-	r.Failed = false // target was killed
 	hazana.PrintReport(r)
 	hazana.PrintSummary(r)
 }

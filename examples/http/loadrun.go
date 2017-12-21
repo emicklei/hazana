@@ -24,10 +24,7 @@ func (a *siteAttack) Setup(hc hazana.Config) error {
 
 func (a *siteAttack) Do(ctx context.Context) hazana.DoResult {
 	_, err := ctxhttp.Get(ctx, a.client, "http://ubanita.org")
-	if err != nil {
-		return hazana.DoResult{Error: err}
-	}
-	return hazana.DoResult{RequestLabel: "ubanita.org"}
+	return hazana.DoResult{RequestLabel: "ubanita.org", Error: err}
 }
 
 func (a *siteAttack) Teardown() error { return nil }

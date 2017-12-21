@@ -30,10 +30,7 @@ func (c *clockAttack) Setup(hc hazana.Config) error {
 
 func (c *clockAttack) Do(ctx context.Context) hazana.DoResult {
 	_, err := c.client.GetTime(ctx, new(GetTimeRequest))
-	if err != nil {
-		return hazana.DoResult{Error: err}
-	}
-	return hazana.DoResult{RequestLabel: "now"}
+	return hazana.DoResult{RequestLabel: "now", Error: err}
 }
 
 func (c *clockAttack) Teardown() error {
