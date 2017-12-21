@@ -1,3 +1,6 @@
+1.3.0:
+- split RunLifecycle into two interface. Pass report to AfterRun
+
 1.2.0:
 - added RunLifecycle interface for BeforeRun and AfterRun hooks
 
