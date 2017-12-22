@@ -12,16 +12,16 @@ import (
 	"go.uber.org/ratelimit"
 )
 
-// BeforeRunAware can be implemented by an Attacker
+// BeforeRunner can be implemented by an Attacker
 // and its method is called before a test or run.
-type BeforeRunAware interface {
+type BeforeRunner interface {
 	BeforeRun(c Config) error
 }
 
-// AfterRunAware can be implemented by an Attacker
+// AfterRunner can be implemented by an Attacker
 // and its method is called after a test or run.
 // The report is passed to compute the Failed field and/or store values in Output.
-type AfterRunAware interface {
+type AfterRunner interface {
 	AfterRun(r *RunReport) error
 }
 
@@ -57,7 +57,7 @@ func Run(a Attack, c Config) RunReport {
 	}
 
 	// is the attacker interested in the run lifecycle?
-	if lifecycler, ok := a.(BeforeRunAware); ok {
+	if lifecycler, ok := a.(BeforeRunner); ok {
 		if err := lifecycler.BeforeRun(c); err != nil {
 			log.Fatalln("BeforeRun failed", err)
 		}
@@ -67,7 +67,7 @@ func Run(a Attack, c Config) RunReport {
 	if *oSample > 0 {
 		r.test(*oSample)
 		report := RunReport{}
-		if lifecycler, ok := a.(AfterRunAware); ok {
+		if lifecycler, ok := a.(AfterRunner); ok {
 			if err := lifecycler.AfterRun(&report); err != nil {
 				log.Fatalln("AfterRun failed", err)
 			}
@@ -78,7 +78,7 @@ func Run(a Attack, c Config) RunReport {
 	}
 	r.init()
 	report := r.run()
-	if lifecycler, ok := a.(AfterRunAware); ok {
+	if lifecycler, ok := a.(AfterRunner); ok {
 		if err := lifecycler.AfterRun(&report); err != nil {
 			log.Fatalln("AfterRun failed", err)
 		}
