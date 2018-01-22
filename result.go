@@ -89,6 +89,7 @@ func PrintSummary(r RunReport) {
 		log.Println(k)
 		log.Println("- - - - -")
 		log.Println("requests:", v.Requests)
+		log.Println("  errors:", v.Requests-v.success)
 		log.Println("     rps:", v.Rate)
 		log.Println("    mean:", v.Latencies.Mean)
 		log.Println("    95th:", v.Latencies.P95)
