@@ -1,3 +1,6 @@
+1.5.2:
+- add ReadFile utility
+
 1.5.1:
 - improve summary
 

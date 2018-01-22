@@ -3,6 +3,7 @@ package hazana
 import (
 	"encoding/json"
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -137,7 +138,22 @@ func applyFlagOverrides(c *Config) {
 func GetEnv(key, absentValue string) string {
 	v := os.Getenv(key)
 	if len(v) == 0 {
+		if *oVerbose {
+			log.Printf("hazana - environment variable [%s] not set, returning [%s...](%d)\n", key, absentValue[:1], len(absentValue))
+		}
 		return absentValue
 	}
 	return v
+}
+
+// ReadFile returns the text contents of a file or absentValue if it errored
+func ReadFile(name, absentValue string) string {
+	data, err := ioutil.ReadFile(name)
+	if err != nil {
+		if *oVerbose {
+			log.Printf("hazana - error reading file [%s], returning [%s...](%d)\n", name, absentValue[:1], len(absentValue))
+		}
+		return absentValue
+	}
+	return string(data)
 }
