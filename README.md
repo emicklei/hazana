@@ -184,6 +184,6 @@ See **examples/clock** for an actual gRPC service that can tell time under load.
 
 ### Stackdriver integration
 
-The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriver-monitoring) project offers a tool to send the results of a loadtest to a Google Stackdriver account. The metrics from the load test are sent as custom metrics to Stackdriver Monitoring. The report itseld is sent as a log entry to Stackdriver Logging.
+The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriver-monitoring) project offers a tool to send the results of a loadtest to a Google Stackdriver account. The metrics from the load test are sent as custom metrics to Stackdriver Monitoring. The report itself is sent as a log entry to Stackdriver Logging.
 
 © 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
