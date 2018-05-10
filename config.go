@@ -15,7 +15,7 @@ const (
 	fRampupTime     = "ramp"
 	fMaxAttackers   = "max"
 	fOutput         = "o"
-	fVerbose        = "v"
+	fVerbose        = "verbose"
 	fSample         = "t"
 	fRampupStrategy = "s"
 	fDoTimeout      = "timeout"
@@ -27,7 +27,7 @@ var (
 	oRampupTime     = flag.Int(fRampupTime, 10, "ramp up time in seconds")
 	oMaxAttackers   = flag.Int(fMaxAttackers, 10, "maximum concurrent attackers")
 	oOutput         = flag.String(fOutput, "", "output file to write the metrics per sample request index (use stdout if empty)")
-	oVerbose        = flag.Bool(fVerbose, false, "verbose logging")
+	oVerbose        = flag.Bool(fVerbose, false, "produce more verbose logging")
 	oSample         = flag.Int(fSample, 0, "test your attack implementation with a number of sample calls. Your program exits after this")
 	oRampupStrategy = flag.String(fRampupStrategy, defaultRampupStrategy, "set the rampup strategy, possible values are {linear,exp2}")
 	oDoTimeout      = flag.Int(fDoTimeout, 5, "timeout in seconds for each attack call")

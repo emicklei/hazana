@@ -61,7 +61,8 @@ Programs that use the **hazana** package will have several flags to control the 
                 target number of requests per second, must be greater than zero (default 1)
         -t int
                 test your attack implementation with a number of sample calls. Your program exits after this.
-        -v verbose logging
+        -verbose
+                produce more verbose logging
 
 #### Example
 

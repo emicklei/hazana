@@ -24,7 +24,7 @@ func TestOverrideLoadedConfig(t *testing.T) {
 	flag.Set("ramp", "33")
 	flag.Set("max", "34")
 	flag.Set("o", "here")
-	flag.Set("v", "false")
+	flag.Set("verbose", "false")
 	flag.Set("s", "?")
 	flag.Set("timeout", "35")
 	c := ConfigFromFile("config_test.json")

@@ -1,3 +1,6 @@
+1.6.0:
+- rename verbose flag "v" to "verbose"
+
 1.5.2:
 - add ReadFile utility
 
