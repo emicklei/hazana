@@ -4,6 +4,7 @@
 
 ## example output
 
+```
 2017/11/07 21:41:08 hazana - load runner
 2017/11/07 21:41:08 begin rampup of [10] seconds using strategy [exp2]
 2017/11/07 21:41:08 setup and spawn new attacker [1]
@@ -31,3 +32,4 @@
 2017/11/07 21:42:18     95th: 87.842548ms
 2017/11/07 21:42:18      max: 94.756054ms
 2017/11/07 21:42:18   errors: 0
+```
