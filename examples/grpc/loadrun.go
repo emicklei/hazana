@@ -21,7 +21,8 @@ type clockAttack struct {
 func (c *clockAttack) Setup(hc hazana.Config) error {
 	conn, err := grpc.Dial("localhost:9090", grpc.WithInsecure())
 	if err != nil {
-		log.Fatal("Dial failed:", err)
+		log.Println("Dial failed:", err)
+		return err
 	}
 	c.conn = conn
 	c.client = NewClockServiceClient(conn)
