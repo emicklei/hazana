@@ -23,8 +23,8 @@ func (a *siteAttack) Setup(hc hazana.Config) error {
 }
 
 func (a *siteAttack) Do(ctx context.Context) hazana.DoResult {
-	_, err := ctxhttp.Get(ctx, a.client, "http://ubanita.org")
-	return hazana.DoResult{RequestLabel: "ubanita.org", Error: err}
+	_, err := ctxhttp.Get(ctx, a.client, "https://github.com")
+	return hazana.DoResult{RequestLabel: "github.com", Error: err}
 }
 
 func (a *siteAttack) Teardown() error { return nil }
