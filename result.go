@@ -92,7 +92,9 @@ func PrintSummary(r RunReport) {
 		log.Println("  errors:", v.Requests-v.success)
 		log.Println("     rps:", v.Rate)
 		log.Println("    mean:", v.Latencies.Mean)
+		log.Println("    50th:", v.Latencies.P50)
 		log.Println("    95th:", v.Latencies.P95)
+		log.Println("    99th:", v.Latencies.P99)
 		log.Println("     max:", v.Latencies.Max)
 		log.Println(" success:", v.successLogEntry(), "%")
 	}
