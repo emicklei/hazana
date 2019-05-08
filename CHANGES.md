@@ -1,3 +1,6 @@
+v1.6.1:
+- 50th and 99th percentile response times to the result summary (Geurtje)
+
 1.6.0:
 - rename verbose flag "v" to "verbose"
 
