@@ -187,4 +187,8 @@ See **examples/clock** for an actual gRPC service that can tell time under load.
 
 The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriver-monitoring) project offers a tool to send the results of a loadtest to a Google Stackdriver account. The metrics from the load test are sent as custom metrics to Stackdriver Monitoring. The report itself is sent as a log entry to Stackdriver Logging.
 
+## Graph visualization
+
+The [hazana-report-visualizer](https://github.com/robertalpha/hazana-report-visualizer) is a tool that produces a diagram served by a local webapp that visualizes a set of reports. It parses the JSON documents to collect the data points.
+
 © 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
