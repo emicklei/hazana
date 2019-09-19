@@ -191,4 +191,6 @@ The [hazana-stackdriver-monitoring](https://github.com/emicklei/hazana-stackdriv
 
 The [hazana-report-visualizer](https://github.com/robertalpha/hazana-report-visualizer) is a tool that produces a diagram served by a local webapp that visualizes a set of reports. It parses the JSON documents to collect the data points.
 
-© 2017, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
+The [hazana-grafana-monitoring](https://github.com/emicklei/hazana-grafana-monitoring) package sends data to a Graphite server which data can be visualised using a Grafana dashboard. Using the "-m" flag you can tell your running loadtest to send this data in realtime to the dashboard (via Graphite).
+
+© 2017-2019, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
