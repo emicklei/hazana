@@ -21,7 +21,7 @@ type Attack interface {
 	Clone() Attack
 }
 
-var errAttackDoTimedOut = errors.New("Attack Do(ctx) timedout")
+var errAttackDoTimedOut = errors.New("hazana.Attack Do(ctx) timed out")
 
 // attack calls attacker.Do upon each received next token, forever
 // attack aborts the loop on a quit receive
@@ -41,7 +41,7 @@ func attack(attacker Attack, next, quit <-chan bool, results chan<- result, time
 			// either get the result from the attacker or from the timeout
 			select {
 			case <-ctx.Done():
-				dor = DoResult{Error: errAttackDoTimedOut}
+				dor = DoResult{RequestLabel: "timeout", Error: errAttackDoTimedOut}
 			case dor = <-done:
 			}
 			end := time.Now()
