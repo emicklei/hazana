@@ -16,6 +16,7 @@ const (
 	fMaxAttackers   = "max"
 	fOutput         = "o"
 	fVerbose        = "verbose"
+	fDebug          = "debug"
 	fSample         = "t"
 	fRampupStrategy = "s"
 	fDoTimeout      = "timeout"
@@ -28,6 +29,7 @@ var (
 	oMaxAttackers   = flag.Int(fMaxAttackers, 10, "maximum concurrent attackers")
 	oOutput         = flag.String(fOutput, "", "output file to write the metrics per sample request index (use stdout if empty)")
 	oVerbose        = flag.Bool(fVerbose, false, "produce more verbose logging")
+	oDebug          = flag.Bool(fDebug, false, "produce more debugging logging")
 	oSample         = flag.Int(fSample, 0, "test your attack implementation with a number of sample calls. Your program exits after this")
 	oRampupStrategy = flag.String(fRampupStrategy, defaultRampupStrategy, "set the rampup strategy, possible values are {linear,exp2}")
 	oDoTimeout      = flag.Int(fDoTimeout, 5, "timeout in seconds for each attack call")
@@ -43,7 +45,8 @@ type Config struct {
 	RampupStrategy string            `json:"rampupStrategy"`
 	MaxAttackers   int               `json:"maxAttackers"`
 	OutputFilename string            `json:"outputFilename,omitempty"`
-	Verbose        bool              `json:"verbose"`
+	Verbose        bool              `json:"verbose"` // for output activity
+	Debug          bool              `json:"debug"`   // for inspecting requests and response, useable by attack
 	Metadata       map[string]string `json:"metadata,omitempty"`
 	DoTimeoutSec   int               `json:"doTimeoutSec"`
 }
@@ -124,6 +127,8 @@ func applyFlagOverrides(c *Config) {
 			c.RampupTimeSec = *oRampupTime
 		case fVerbose:
 			c.Verbose = *oVerbose
+		case fDebug:
+			c.Debug = *oDebug
 		case fMaxAttackers:
 			c.MaxAttackers = *oMaxAttackers
 		case fOutput:
