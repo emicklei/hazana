@@ -37,7 +37,7 @@ type runner struct {
 
 // Run starts attacking a service using an Attack implementation and a configuration.
 // Return a report with statistics per sample and the configuration used.
-func Run(a Attack, c Config) RunReport {
+func Run(a Attack, c Config) *RunReport {
 	if c.Verbose {
 		log.Println("** hazana - load runner **")
 		log.Printf("[%d] available logical CPUs\n", runtime.NumCPU())
@@ -66,9 +66,9 @@ func Run(a Attack, c Config) RunReport {
 	// do a test if the flag says so
 	if *oSample > 0 {
 		r.test(*oSample)
-		report := RunReport{}
+		report := new(RunReport)
 		if lifecycler, ok := a.(AfterRunner); ok {
-			if err := lifecycler.AfterRun(&report); err != nil {
+			if err := lifecycler.AfterRun(report); err != nil {
 				log.Fatalln("AfterRun failed", err)
 			}
 		}
@@ -79,7 +79,7 @@ func Run(a Attack, c Config) RunReport {
 	r.init()
 	report := r.run()
 	if lifecycler, ok := a.(AfterRunner); ok {
-		if err := lifecycler.AfterRun(&report); err != nil {
+		if err := lifecycler.AfterRun(report); err != nil {
 			log.Fatalln("AfterRun failed", err)
 		}
 	}
@@ -136,7 +136,7 @@ func (r *runner) test(count int) {
 }
 
 // run offers the complete flow of a load test.
-func (r *runner) run() RunReport {
+func (r *runner) run() *RunReport {
 	go r.collectResults()
 	r.rampUp()
 	r.fullAttack()
@@ -204,11 +204,11 @@ func (r *runner) tearDownAttackers() {
 	}
 }
 
-func (r *runner) reportMetrics() RunReport {
+func (r *runner) reportMetrics() *RunReport {
 	for _, each := range r.metrics {
 		each.updateLatencies()
 	}
-	return RunReport{
+	return &RunReport{
 		StartedAt:     fullAttackStartedAt,
 		FinishedAt:    time.Now(),
 		Configuration: r.config,

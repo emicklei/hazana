@@ -6,7 +6,8 @@ import (
 )
 
 type attackMock struct {
-	sleep time.Duration
+	sleep                     time.Duration
+	afterCalled, beforeCalled bool
 }
 
 func (m *attackMock) Setup(c Config) error {
@@ -24,4 +25,14 @@ func (m *attackMock) Teardown() error {
 
 func (m *attackMock) Clone() Attack {
 	return m
+}
+
+func (m *attackMock) BeforeRun(c Config) error {
+	m.beforeCalled = true
+	return nil
+}
+
+func (m *attackMock) AfterRun(r *RunReport) error {
+	m.afterCalled = true
+	return nil
 }

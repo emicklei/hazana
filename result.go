@@ -44,8 +44,8 @@ type RunReport struct {
 }
 
 // NewErrorReport returns a report when a Run could not be called or executed.
-func NewErrorReport(err error, config Config) RunReport {
-	return RunReport{
+func NewErrorReport(err error, config Config) *RunReport {
+	return &RunReport{
 		StartedAt:     time.Now(),
 		FinishedAt:    time.Now(),
 		RunError:      err.Error(),
@@ -56,7 +56,7 @@ func NewErrorReport(err error, config Config) RunReport {
 }
 
 // PrintReport writes the JSON report to a file or stdout, depending on the configuration.
-func PrintReport(r RunReport) {
+func PrintReport(r *RunReport) {
 	// make secrets in Metadata unreadable
 	for k := range r.Configuration.Metadata {
 		if strings.HasSuffix(k, "*") {
@@ -83,7 +83,7 @@ func PrintReport(r RunReport) {
 }
 
 // PrintSummary logs a subset of the report for each metric label
-func PrintSummary(r RunReport) {
+func PrintSummary(r *RunReport) {
 	for k, v := range r.Metrics {
 		log.Println("---------")
 		log.Println(k)
