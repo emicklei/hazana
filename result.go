@@ -45,14 +45,17 @@ type RunReport struct {
 
 // NewErrorReport returns a report when a Run could not be called or executed.
 func NewErrorReport(err error, config Config) *RunReport {
-	return &RunReport{
+	r := &RunReport{
 		StartedAt:     time.Now(),
 		FinishedAt:    time.Now(),
-		RunError:      err.Error(),
 		Configuration: config,
-		Failed:        true, // clearly the run was not acceptable
+		Failed:        err != nil, // clearly the run was not acceptable
 		Output:        map[string]interface{}{},
 	}
+	if err != nil {
+		r.RunError = err.Error()
+	}
+	return r
 }
 
 // PrintReport writes the JSON report to a file or stdout, depending on the configuration.

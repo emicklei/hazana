@@ -66,7 +66,7 @@ func Run(a Attack, c Config) *RunReport {
 	// do a test if the flag says so
 	if *oSample > 0 {
 		r.test(*oSample)
-		report := new(RunReport)
+		report := &RunReport{Configuration: c, Output: map[string]interface{}{}}
 		if lifecycler, ok := a.(AfterRunner); ok {
 			if err := lifecycler.AfterRun(report); err != nil {
 				log.Fatalln("AfterRun failed", err)
