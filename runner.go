@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	"go.uber.org/ratelimit"
@@ -139,13 +141,18 @@ func (r *runner) test(count int) {
 func (r *runner) run() *RunReport {
 	go r.collectResults()
 	r.rampUp()
-	r.fullAttack()
+
+	// allow a report despite that we abort the test
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	r.fullAttack(ch)
+
 	r.quitAttackers()
 	r.tearDownAttackers()
 	return r.reportMetrics()
 }
 
-func (r *runner) fullAttack() {
+func (r *runner) fullAttack(abortChannel chan os.Signal) {
 	// attack can only proceed when at least one attacker is waiting for rps tokens
 	if len(r.attackers) == 0 {
 		// rampup probably has failed too
@@ -159,8 +166,15 @@ func (r *runner) fullAttack() {
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
 	for time.Now().Before(doneDeadline) {
 		limiter.Take()
-		r.next <- true
+		select {
+		case sig := <-abortChannel:
+			fmt.Printf("caught signal %s. aborting full attack...\n", sig)
+			goto end
+		default:
+			r.next <- true
+		}
 	}
+end:
 	if r.config.Verbose {
 		log.Printf("end full attack")
 	}
