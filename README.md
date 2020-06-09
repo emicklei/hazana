@@ -64,7 +64,7 @@ Programs that use the **hazana** package will have several flags to control the 
         -verbose
                 produce more verbose logging
 
-#### Example
+#### Example from flags
 
 After creating your implementation type **YourAttack** then this would be the minimal program to run a load test.
 
@@ -85,10 +85,13 @@ In addition to using flags, you can load the configuration from a JSON file. Val
         {
                 "RPS": 10,
                 "AttackTimeSec": 20,
-                "RampupTimeSec": 10,
+                "RampupTimeSec": 10,                
+                "RampupStrategy": "linear",
                 "MaxAttackers": 10,
+                "DoTimeoutSec": 5,
                 "OutputFilename": "myreport.json",
                 "Verbose": true,
+                "Debug": false,
                 "Metadata": {
                         "service" : "happiness.services.com",
                         "environment" : "staging",
@@ -99,7 +102,7 @@ In addition to using flags, you can load the configuration from a JSON file. Val
 
 _Note that metadata keys that end with * will be obfuscated when reporting_. 
 
-#### Example
+#### Example from file
 
         func main() {
                 r := hazana.Run(YourAttack{}, hazana.ConfigFromFile("myconfig.json"))
@@ -193,4 +196,4 @@ The [hazana-report-visualizer](https://github.com/robertalpha/hazana-report-visu
 
 The [hazana-grafana-monitoring](https://github.com/emicklei/hazana-grafana-monitoring) package sends data to a Graphite server which data can be visualised using a Grafana dashboard. Using the "-m" flag you can tell your running loadtest to send this data in realtime to the dashboard (via Graphite).
 
-© 2017-2019, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
+© 2017-2020, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.

@@ -41,7 +41,7 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	rampMetrics := new(Metrics)
 	// rampup can only proceed when at least one attacker is waiting for rps tokens
 	if len(r.attackers) == 0 {
-		log.Println("no attackers available to start rampup or full attack")
+		log.Println("[hazana] - no attackers available to start rampup or full attack")
 		return 0, rampMetrics
 	}
 	// change pipeline function to collect local metrics
@@ -59,31 +59,49 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 	// put the attackers to work
 	for time.Now().Before(oneSecondAhead) {
 		limiter.Take()
-		r.next <- true
+		select {
+		case <-r.abort:
+			goto end
+		default:
+			r.next <- true
+		}
 	}
+end:
 	limiter.Take() // to compensate for the first Take of the new limiter
 	rampMetrics.updateLatencies()
 
 	if r.config.Verbose {
-		log.Printf("rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
+		log.Printf("[hazana] - rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
 			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry())
 	}
 	return rps, rampMetrics
 }
 
-type spawnAsWeNeedStrategy struct{}
+type spawnAsWeNeedStrategy struct {
+	checkEvery int
+}
 
 func (s spawnAsWeNeedStrategy) execute(r *runner) {
+	every := s.checkEvery
+	if every == 0 {
+		every = 5 // sec
+	}
 	r.spawnAttacker() // start at least one
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
 		targetRate, lastMetrics := takeDuringOneRampupSecond(r, i)
-		currentRate := lastMetrics.Rate
-		if currentRate < float64(targetRate) {
-			factor := float64(targetRate) / currentRate
-			if factor > 2.0 {
-				factor = 2.0
+		// do not grow too fast too early
+		if i%every == 0 || i == r.config.RampupTimeSec {
+			currentRate := lastMetrics.Rate
+			if currentRate < 0.001 { // threshold
+				continue
 			}
-			spawnAttackersToSize(r, int(math.Ceil(float64(len(r.attackers))*factor)))
+			if currentRate < float64(targetRate) {
+				factor := float64(targetRate) / currentRate
+				if factor > 2.0 {
+					factor = 2.0
+				}
+				spawnAttackersToSize(r, int(math.Ceil(float64(len(r.attackers))*factor)))
+			}
 		}
 	}
 }

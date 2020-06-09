@@ -28,21 +28,21 @@ type AfterRunner interface {
 }
 
 type runner struct {
-	config          Config
-	attackers       []Attack
-	next, quit      chan bool
-	results         chan result
-	prototype       Attack
-	metrics         map[string]*Metrics
-	resultsPipeline func(r result) result
+	config            Config
+	attackers         []Attack
+	next, quit, abort chan bool
+	results           chan result
+	prototype         Attack
+	metrics           map[string]*Metrics
+	resultsPipeline   func(r result) result
 }
 
 // Run starts attacking a service using an Attack implementation and a configuration.
 // Return a report with statistics per sample and the configuration used.
 func Run(a Attack, c Config) *RunReport {
 	if c.Verbose {
-		log.Println("** hazana - load runner **")
-		log.Printf("[%d] available logical CPUs\n", runtime.NumCPU())
+		log.Println("[hazana] - load runner")
+		log.Printf("[hazana] - [%d] available logical CPUs\n", runtime.NumCPU())
 	}
 	r := new(runner)
 	r.config = c
@@ -51,41 +51,50 @@ func Run(a Attack, c Config) *RunReport {
 	// validate the configuration
 	if msg := c.Validate(); len(msg) > 0 {
 		for _, each := range msg {
-			fmt.Println("a configuration error was found", each)
+			fmt.Println("[hazana] - a configuration error was found", each)
 		}
 		fmt.Println()
 		flag.Usage()
 		os.Exit(0)
 	}
+	r.init()
 
 	// is the attacker interested in the run lifecycle?
 	if lifecycler, ok := a.(BeforeRunner); ok {
 		if err := lifecycler.BeforeRun(c); err != nil {
-			log.Fatalln("BeforeRun failed", err)
+			log.Fatalln("[hazana] - BeforeRun failed", err)
 		}
 	}
 
 	// do a test if the flag says so
 	if *oSample > 0 {
-		r.test(*oSample)
-		report := &RunReport{Configuration: c, Output: map[string]interface{}{}}
+		report := r.test(*oSample)
 		if lifecycler, ok := a.(AfterRunner); ok {
 			if err := lifecycler.AfterRun(report); err != nil {
-				log.Fatalln("AfterRun failed", err)
+				log.Fatalln("[hazana] - AfterRun failed", err)
 			}
 		}
-		os.Exit(0)
-		// unreachable
 		return report
 	}
-	r.init()
 	report := r.run()
 	if lifecycler, ok := a.(AfterRunner); ok {
 		if err := lifecycler.AfterRun(report); err != nil {
-			log.Fatalln("AfterRun failed", err)
+			log.Fatalln("[hazana] - AfterRun failed", err)
 		}
 	}
 	return report
+}
+
+func (r *runner) listenForAbort() {
+	r.abort = make(chan bool)
+	// abort will stop test,rampup or full attack
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func() {
+		sig := <-ch
+		fmt.Printf("[hazana] - caught signal %s. aborting test...\n", sig)
+		r.abort <- true
+	}()
 }
 
 func (r *runner) init() {
@@ -95,15 +104,16 @@ func (r *runner) init() {
 	r.attackers = []Attack{}
 	r.metrics = map[string]*Metrics{}
 	r.resultsPipeline = r.addResult
+	r.listenForAbort()
 }
 
 func (r *runner) spawnAttacker() {
 	if r.config.Verbose {
-		log.Printf("setup and spawn new attacker [%d]\n", len(r.attackers)+1)
+		log.Printf("[hazana] - setup and spawn new attacker [%d]\n", len(r.attackers)+1)
 	}
 	attacker := r.prototype.Clone()
 	if err := attacker.Setup(r.config); err != nil {
-		log.Printf("attacker [%d] setup failed with [%v]\n", len(r.attackers)+1, err)
+		log.Printf("[hazana] - attacker [%d] setup failed with [%v]\n", len(r.attackers)+1, err)
 		return
 	}
 	r.attackers = append(r.attackers, attacker)
@@ -123,43 +133,54 @@ func (r *runner) addResult(s result) result {
 
 // test uses the Attack to perform {count} calls and report its result
 // it is intended for development of an Attack implementation.
-func (r *runner) test(count int) {
+func (r *runner) test(count int) *RunReport {
 	probe := r.prototype.Clone()
 	if err := probe.Setup(r.config); err != nil {
-		log.Printf("test attack setup failed [%v]", err)
-		return
+		log.Printf("[hazana] - test attack setup failed [%v]", err)
+		return &RunReport{Configuration: r.config, Output: map[string]interface{}{}}
 	}
 	defer probe.Teardown()
 	for s := count; s > 0; s-- {
 		now := time.Now()
-		result := probe.Do(context.Background())
-		log.Printf("test attack call [%s] took [%v] with status [%v] and error [%v]\n", result.RequestLabel, time.Now().Sub(now), result.StatusCode, result.Error)
+		doResult := probe.Do(context.Background())
+		end := time.Now()
+		r.addResult(result{
+			doResult: doResult,
+			begin:    now,
+			end:      end,
+			elapsed:  end.Sub(now),
+		})
+		log.Printf("[hazana] - test attack call [%s] took [%v] with status [%v] and error [%v]\n", doResult.RequestLabel, end.Sub(now), doResult.StatusCode, doResult.Error)
+		select {
+		case <-r.abort:
+			goto end
+		default:
+		}
 	}
+end:
+	return r.reportMetrics()
 }
 
 // run offers the complete flow of a load test.
 func (r *runner) run() *RunReport {
 	go r.collectResults()
-	r.rampUp()
 
-	// allow a report despite that we abort the test
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
-	r.fullAttack(ch)
+	r.rampUp()
+	r.fullAttack()
 
 	r.quitAttackers()
 	r.tearDownAttackers()
 	return r.reportMetrics()
 }
 
-func (r *runner) fullAttack(abortChannel chan os.Signal) {
+func (r *runner) fullAttack() {
 	// attack can only proceed when at least one attacker is waiting for rps tokens
 	if len(r.attackers) == 0 {
 		// rampup probably has failed too
 		return
 	}
 	if r.config.Verbose {
-		log.Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
+		log.Printf("[hazana] - begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
 	}
 	fullAttackStartedAt = time.Now()
 	limiter := ratelimit.New(r.config.RPS) // per second
@@ -167,23 +188,21 @@ func (r *runner) fullAttack(abortChannel chan os.Signal) {
 	for time.Now().Before(doneDeadline) {
 		limiter.Take()
 		select {
-		case sig := <-abortChannel:
-			fmt.Printf("caught signal %s. aborting full attack...\n", sig)
+		case <-r.abort:
 			goto end
 		default:
-			r.next <- true
 		}
 	}
 end:
 	if r.config.Verbose {
-		log.Printf("end full attack")
+		log.Printf("[hazana] - end full attack")
 	}
 }
 
 func (r *runner) rampUp() {
 	strategy := r.config.rampupStrategy()
 	if r.config.Verbose {
-		log.Printf("begin rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds using strategy [%s]\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec, strategy)
+		log.Printf("[hazana] - begin rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds using strategy [%s]\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec, strategy)
 	}
 	switch strategy {
 	case "linear":
@@ -194,13 +213,13 @@ func (r *runner) rampUp() {
 	// restore pipeline function incase it was changed by the rampup strategy
 	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
-		log.Printf("end rampup ending up with [%d] attackers\n", len(r.attackers))
+		log.Printf("[hazana] - end rampup ending up with [%d] attackers\n", len(r.attackers))
 	}
 }
 
 func (r *runner) quitAttackers() {
 	if r.config.Verbose {
-		log.Printf("stopping attackers [%d]\n", len(r.attackers))
+		log.Printf("[hazana] - stopping attackers [%d]\n", len(r.attackers))
 	}
 	for range r.attackers {
 		r.quit <- true
@@ -209,11 +228,11 @@ func (r *runner) quitAttackers() {
 
 func (r *runner) tearDownAttackers() {
 	if r.config.Verbose {
-		log.Printf("tearing down attackers [%d]\n", len(r.attackers))
+		log.Printf("[hazana] - tearing down attackers [%d]\n", len(r.attackers))
 	}
 	for i, each := range r.attackers {
 		if err := each.Teardown(); err != nil {
-			log.Printf("failed to teardown attacker [%d]:%v\n", i, err)
+			log.Printf("[hazana] - failed to teardown attacker [%d]:%v\n", i, err)
 		}
 	}
 }
