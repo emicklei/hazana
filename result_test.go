@@ -19,7 +19,6 @@ func TestLoadRunReportWithError(t *testing.T) {
 	data, _ := ioutil.ReadFile(f)
 	b := RunReport{}
 	if err := json.Unmarshal(data, &b); err != nil {
-		t.Log(err)
+		t.Error(err)
 	}
-	t.Log(f)
 }

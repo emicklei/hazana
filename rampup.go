@@ -1,14 +1,13 @@
 package hazana
 
 import (
-	"log"
 	"math"
 	"time"
 
 	"go.uber.org/ratelimit"
 )
 
-const defaultRampupStrategy = "exp2"
+const defaultRampupStrategy = "exp2 keep=1 factor=2.0"
 
 type rampupStrategy interface {
 	execute(r *runner)
@@ -20,7 +19,7 @@ func (s linearIncreasingGoroutinesAndRequestsPerSecondStrategy) execute(r *runne
 	r.spawnAttacker() // start at least one
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
 		spawnAttackersToSize(r, i*r.config.MaxAttackers/r.config.RampupTimeSec)
-		takeDuringOneRampupSecond(r, i)
+		takeDuringRampupSeconds(r, i, 1)
 	}
 }
 
@@ -35,13 +34,13 @@ func spawnAttackersToSize(r *runner, count int) {
 	}
 }
 
-// takeDuringOneRampupSecond puts all attackers to work during one second with a reduced RPS.
-func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
+// takeDuringRampupSecond puts all attackers to work during one second with a reduced RPS.
+func takeDuringRampupSeconds(r *runner, second int, durationSeconds int) (int, *Metrics) {
 	// collect metrics for each second
 	rampMetrics := new(Metrics)
 	// rampup can only proceed when at least one attacker is waiting for rps tokens
 	if len(r.attackers) == 0 {
-		log.Println("[hazana] - no attackers available to start rampup or full attack")
+		Printf("no attackers available to start rampup or full attack")
 		return 0, rampMetrics
 	}
 	// change pipeline function to collect local metrics
@@ -55,53 +54,47 @@ func takeDuringOneRampupSecond(r *runner, second int) (int, *Metrics) {
 		rps = 1
 	}
 	limiter := ratelimit.New(rps)
-	oneSecondAhead := time.Now().Add(time.Duration(1 * time.Second))
+	oneSecondAhead := time.Now().Add(time.Duration(time.Duration(durationSeconds) * time.Second))
 	// put the attackers to work
 	for time.Now().Before(oneSecondAhead) {
 		limiter.Take()
-		select {
-		case <-r.abort:
-			goto end
-		default:
-			r.next <- true
-		}
+		r.next <- true
 	}
-end:
 	limiter.Take() // to compensate for the first Take of the new limiter
 	rampMetrics.updateLatencies()
 
 	if r.config.Verbose {
-		log.Printf("[hazana] - rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
+		Printf("rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
 			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry())
 	}
 	return rps, rampMetrics
 }
 
+// exp2 keep=1 max-factor=2.0
 type spawnAsWeNeedStrategy struct {
-	checkEvery int
+	parameters strategyParameters
 }
 
 func (s spawnAsWeNeedStrategy) execute(r *runner) {
-	every := s.checkEvery
-	if every == 0 {
-		every = 5 // sec
-	}
+	keep := s.parameters.intParam("keep", 1)
+	maxFactor := s.parameters.floatParam("max-factor", 2.0)
+
 	r.spawnAttacker() // start at least one
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
-		targetRate, lastMetrics := takeDuringOneRampupSecond(r, i)
-		// do not grow too fast too early
-		if i%every == 0 || i == r.config.RampupTimeSec {
-			currentRate := lastMetrics.Rate
-			if currentRate < 0.001 { // threshold
-				continue
+		select {
+		case <-r.abort:
+			goto end
+		default:
+		}
+		targetRate, lastMetrics := takeDuringRampupSeconds(r, i, keep)
+		currentRate := lastMetrics.Rate
+		if currentRate < float64(targetRate) {
+			currentFactor := float64(targetRate) / currentRate
+			if currentFactor > maxFactor {
+				currentFactor = maxFactor
 			}
-			if currentRate < float64(targetRate) {
-				factor := float64(targetRate) / currentRate
-				if factor > 2.0 {
-					factor = 2.0
-				}
-				spawnAttackersToSize(r, int(math.Ceil(float64(len(r.attackers))*factor)))
-			}
+			spawnAttackersToSize(r, int(math.Ceil(float64(len(r.attackers))*currentFactor)))
 		}
 	}
+end: // aborted
 }

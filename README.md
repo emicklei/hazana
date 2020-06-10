@@ -35,10 +35,23 @@ Typically each Attack value uses its own connection but your implementation can 
 ### Rampup
 
 The **hazana** runner will use a rampup period in which the RPS is increased (every second) during the rampup time. In this phase, new goroutines are spawned up to the given maximum. This package has two strategies for adding new attackers to meet the rps.
-The **linear** rampup strategy will create exactly the maximum number of goroutines within the rampup period. 
-The **exp2** strategy spawn goroutines as needed (exponential with max factor of 2) to match the current rps load during.
 
-![](hazana_profile.png)
+#### linear
+
+The **linear** rampup strategy will create exactly the maximum number of goroutines within the rampup period.
+
+#### exp2
+
+The **exp2** strategy spawn goroutines as needed (exponential with max factor of 2) to match the current rps load during. You can change the time in seconds to measure the rate (default=1) using the `keep` parameter. The factor can be changed with the `max-factor` parameter.
+Using the configuration:
+
+        “RampupStrategy”: “exp2 keep=5 max-factor=1.1",
+
+As a command line flag:
+
+        -s “exp2 keep=5 max-factor=1.1"
+
+![profile](hazana_profile.png)
 
 ### Flags
 

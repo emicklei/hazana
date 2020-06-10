@@ -3,6 +3,7 @@ package hazana
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -39,16 +40,17 @@ var fullAttackStartedAt time.Time
 
 // Config holds settings for a Runner.
 type Config struct {
-	RPS            int               `json:"rps"`
-	AttackTimeSec  int               `json:"attackTimeSec"`
-	RampupTimeSec  int               `json:"rampupTimeSec"`
-	RampupStrategy string            `json:"rampupStrategy"`
-	MaxAttackers   int               `json:"maxAttackers"`
-	OutputFilename string            `json:"outputFilename,omitempty"`
-	Verbose        bool              `json:"verbose"` // for output activity
-	Debug          bool              `json:"debug"`   // for inspecting requests and response, useable by attack
-	Metadata       map[string]string `json:"metadata,omitempty"`
-	DoTimeoutSec   int               `json:"doTimeoutSec"`
+	RPS               int               `json:"rps"`
+	AttackTimeSec     int               `json:"attackTimeSec"`
+	RampupTimeSec     int               `json:"rampupTimeSec"`
+	RampupStrategy    string            `json:"rampupStrategy"`
+	MaxAttackers      int               `json:"maxAttackers"`
+	OutputFilename    string            `json:"outputFilename,omitempty"`
+	CSVOutputFilename string            `json:"csvOutputFilename,omitempty"`
+	Verbose           bool              `json:"verbose"` // for output activity
+	Debug             bool              `json:"debug"`   // for inspecting requests and response, useable by attack
+	Metadata          map[string]string `json:"metadata,omitempty"`
+	DoTimeoutSec      int               `json:"doTimeoutSec"`
 }
 
 // Validate checks all settings and returns a list of strings with problems.
@@ -69,6 +71,11 @@ func (c Config) Validate() (list []string) {
 		list = append(list, "please set the Do() timeout to a positive maximum number of seconds")
 	}
 	return
+}
+
+func (c Config) String() string {
+	return fmt.Sprintf("rps [%v] attack [%v] rampup [%v] strategy [%v] max [%v] timeout [%v] JSON [%v] CSV [%s]\n",
+		c.RPS, c.AttackTimeSec, c.RampupTimeSec, c.RampupStrategy, c.MaxAttackers, c.DoTimeoutSec, c.OutputFilename, c.CSVOutputFilename)
 }
 
 // timeout is in seconds
@@ -144,7 +151,7 @@ func GetEnv(key, absentValue string) string {
 	v := os.Getenv(key)
 	if len(v) == 0 {
 		if *oVerbose {
-			log.Printf("hazana - environment variable [%s] not set, returning [%s...](%d)\n", key, absentValue[:1], len(absentValue))
+			Printf("environment variable [%s] not set, returning [%s...](%d)\n", key, absentValue[:1], len(absentValue))
 		}
 		return absentValue
 	}
@@ -156,7 +163,7 @@ func ReadFile(name, absentValue string) string {
 	data, err := ioutil.ReadFile(name)
 	if err != nil {
 		if *oVerbose {
-			log.Printf("hazana - error reading file [%s], returning [%s...](%d)\n", name, absentValue[:1], len(absentValue))
+			Printf("error reading file [%s], returning [%s...](%d)\n", name, absentValue[:1], len(absentValue))
 		}
 		return absentValue
 	}
