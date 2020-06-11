@@ -1,6 +1,7 @@
 package hazana
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -33,4 +34,8 @@ var RequesLabelSeparator = ","
 func (d DoResult) WithLabels(labels ...string) DoResult {
 	d.RequestLabel = strings.Join(labels, RequesLabelSeparator)
 	return d
+}
+
+func (d DoResult) String() string {
+	return fmt.Sprintf("%s,status=%d,error=%v", d.RequestLabel, d.StatusCode, d.Error)
 }

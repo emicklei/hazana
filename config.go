@@ -16,6 +16,7 @@ const (
 	fRampupTime     = "ramp"
 	fMaxAttackers   = "max"
 	fOutput         = "o"
+	fCSVOutput      = "csv"
 	fVerbose        = "verbose"
 	fDebug          = "debug"
 	fSample         = "t"
@@ -28,7 +29,8 @@ var (
 	oAttackTime     = flag.Int(fAttackTime, 60, "duration of the attack in seconds")
 	oRampupTime     = flag.Int(fRampupTime, 10, "ramp up time in seconds")
 	oMaxAttackers   = flag.Int(fMaxAttackers, 10, "maximum concurrent attackers")
-	oOutput         = flag.String(fOutput, "", "output file to write the metrics per sample request index (use stdout if empty)")
+	oOutput         = flag.String(fOutput, "", "output file to write the metrics per sample request index")
+	oCSVOutput      = flag.String(fCSVOutput, "", "CSV output file to write the metrics per sample request index")
 	oVerbose        = flag.Bool(fVerbose, false, "produce more verbose logging")
 	oDebug          = flag.Bool(fDebug, false, "produce more debugging logging")
 	oSample         = flag.Int(fSample, 0, "test your attack implementation with a number of sample calls. Your program exits after this")
@@ -94,15 +96,17 @@ func (c Config) rampupStrategy() string {
 func ConfigFromFlags() Config {
 	flag.Parse()
 	return Config{
-		RPS:            *oRPS,
-		AttackTimeSec:  *oAttackTime,
-		RampupTimeSec:  *oRampupTime,
-		RampupStrategy: *oRampupStrategy,
-		Verbose:        *oVerbose,
-		MaxAttackers:   *oMaxAttackers,
-		OutputFilename: *oOutput,
-		Metadata:       map[string]string{},
-		DoTimeoutSec:   *oDoTimeout,
+		RPS:               *oRPS,
+		AttackTimeSec:     *oAttackTime,
+		RampupTimeSec:     *oRampupTime,
+		RampupStrategy:    *oRampupStrategy,
+		Verbose:           *oVerbose,
+		Debug:             *oDebug,
+		MaxAttackers:      *oMaxAttackers,
+		OutputFilename:    *oOutput,
+		CSVOutputFilename: *oCSVOutput,
+		Metadata:          map[string]string{},
+		DoTimeoutSec:      *oDoTimeout,
 	}
 }
 
@@ -140,6 +144,8 @@ func applyFlagOverrides(c *Config) {
 			c.MaxAttackers = *oMaxAttackers
 		case fOutput:
 			c.OutputFilename = *oOutput
+		case fCSVOutput:
+			c.CSVOutputFilename = *oCSVOutput
 		case fDoTimeout:
 			c.DoTimeoutSec = *oDoTimeout
 		}

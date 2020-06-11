@@ -66,6 +66,8 @@ Programs that use the **hazana** package will have several flags to control the 
                 timeout in seconds for an attack call (default 5)
         -o string
                 output file to write the metrics per sample request index (use stdout if empty)
+        -csv string
+                CSV output file to write the metrics
         -ramp int
                 ramp up time in seconds (default 10)
         -s string

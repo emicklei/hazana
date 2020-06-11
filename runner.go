@@ -121,6 +121,12 @@ func (r *runner) spawnAttacker() {
 	go attack(attacker, r.next, r.quit, r.results, r.config.timeout())
 }
 
+// used if debug=true
+func (r *runner) addDebugResult(s result) result {
+	Printf("%s\n", s.doResult)
+	return r.addResult(s)
+}
+
 // addResult is called from a dedicated goroutine.
 func (r *runner) addResult(s result) result {
 	m, ok := r.metrics[s.doResult.RequestLabel]
@@ -187,6 +193,12 @@ func (r *runner) fullAttack() {
 	if r.config.Verbose {
 		Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
 	}
+	// restore pipeline function in case it was changed by the rampup strategy
+	if *oDebug {
+		r.resultsPipeline = r.addDebugResult
+	} else {
+		r.resultsPipeline = r.addResult
+	}
 	fullAttackStartedAt = time.Now()
 	limiter := ratelimit.New(r.config.RPS) // per second
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
@@ -200,14 +212,14 @@ func (r *runner) fullAttack() {
 	}
 end:
 	if r.config.Verbose {
-		Printf("end full attack")
+		Printf("end full attack\n")
 	}
 }
 
 func (r *runner) rampUp() {
 	strategy := strategyParameters{line: r.config.rampupStrategy()}
 	if r.config.Verbose {
-		Printf("begin rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec)
+		Printf("_-_ rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec)
 	}
 	if strategy.is("linear") {
 		linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
@@ -215,10 +227,8 @@ func (r *runner) rampUp() {
 	if strategy.is("exp2") {
 		spawnAsWeNeedStrategy{parameters: strategy}.execute(r)
 	}
-	// restore pipeline function incase it was changed by the rampup strategy
-	r.resultsPipeline = r.addResult
 	if r.config.Verbose {
-		Printf("end rampup ending up with [%d] attackers\n", len(r.attackers))
+		Printf("-_- rampup ending up with [%d] attackers\n", len(r.attackers))
 	}
 }
 

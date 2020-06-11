@@ -54,9 +54,9 @@ func takeDuringRampupSeconds(r *runner, second int, durationSeconds int) (int, *
 		rps = 1
 	}
 	limiter := ratelimit.New(rps)
-	oneSecondAhead := time.Now().Add(time.Duration(time.Duration(durationSeconds) * time.Second))
+	secondsAhead := time.Now().Add(time.Duration(time.Duration(durationSeconds) * time.Second))
 	// put the attackers to work
-	for time.Now().Before(oneSecondAhead) {
+	for time.Now().Before(secondsAhead) {
 		limiter.Take()
 		r.next <- true
 	}
@@ -64,7 +64,7 @@ func takeDuringRampupSeconds(r *runner, second int, durationSeconds int) (int, *
 	rampMetrics.updateLatencies()
 
 	if r.config.Verbose {
-		Printf("rate [%4f -> %v], mean response [%v], # requests [%d], # attackers [%d], %% success [%d]\n",
+		Printf("rate [%4f -> %v], mean response [%v], requests [%d], attackers [%d], success [%d %%]\n",
 			rampMetrics.Rate, rps, rampMetrics.meanLogEntry(), rampMetrics.Requests, len(r.attackers), rampMetrics.successLogEntry())
 	}
 	return rps, rampMetrics
