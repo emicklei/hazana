@@ -1,3 +1,14 @@
+[2020-06-11] v1.9.1:
+
+- add CSV output
+- add parameters for rampup strategy exp2
+- logging show relative time
+- able to abort test, rampup or full attack, preserving report
+- add debug option
+- stop attackers on quit signal
+- set label for timeout result
+- update uber ratelimit
+
 v1.6.1:
 - 50th and 99th percentile response times to the result summary (Geurtje)
 
