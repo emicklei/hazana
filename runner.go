@@ -30,6 +30,7 @@ type runner struct {
 	config            Config
 	attackers         []Attack
 	next, quit, abort chan bool
+	aborted           bool
 	results           chan result
 	prototype         Attack
 	metrics           map[string]*Metrics
@@ -93,6 +94,7 @@ func (r *runner) listenForAbort() {
 	go func() {
 		sig := <-ch
 		Printf("caught signal %v. aborting run...\n", sig)
+		r.aborted = true
 		r.abort <- true
 		Printf("aborted. clean up...\n")
 	}()
@@ -185,6 +187,9 @@ func (r *runner) run() *RunReport {
 }
 
 func (r *runner) fullAttack() {
+	if r.aborted {
+		return
+	}
 	// attack can only proceed when at least one attacker is waiting for rps tokens
 	if len(r.attackers) == 0 {
 		// rampup probably has failed too
