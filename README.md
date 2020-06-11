@@ -131,75 +131,98 @@ See **examples/clock** for an actual gRPC service that can tell time under load.
 
 ### Sample verbose output from one of our services
 
-        2017/08/17 10:26:32 hazana - load runner
-        2017/08/17 10:26:32 begin rampup of [10] seconds
-        2017/08/17 10:26:32 setup and spawn new attacker [1]
-        2017/08/17 10:26:34 current rate [1.998330838214118], target rate [1], attackers [1], mean response time [229.576185ms]
-        2017/08/17 10:26:34 setup and spawn new attacker [2]
-        2017/08/17 10:26:36 current rate [2.9997667261403085], target rate [2], attackers [2], mean response time [52.674453ms]
-        2017/08/17 10:26:36 setup and spawn new attacker [3]
-        2017/08/17 10:26:37 current rate [3.9896134642448655], target rate [3], attackers [3], mean response time [52.805457ms]
-        2017/08/17 10:26:37 setup and spawn new attacker [4]
-        2017/08/17 10:26:39 current rate [4.973899789133906], target rate [4], attackers [4], mean response time [54.645931ms]
-        2017/08/17 10:26:39 setup and spawn new attacker [5]
-        2017/08/17 10:26:40 current rate [5.995198996681865], target rate [5], attackers [5], mean response time [53.096359ms]
-        2017/08/17 10:26:40 setup and spawn new attacker [6]
-        2017/08/17 10:26:41 current rate [6.973412713416999], target rate [6], attackers [6], mean response time [55.183152ms]
-        2017/08/17 10:26:41 setup and spawn new attacker [7]
-        2017/08/17 10:26:42 current rate [7.982915515035891], target rate [7], attackers [7], mean response time [45.521208ms]
-        2017/08/17 10:26:42 setup and spawn new attacker [8]
-        2017/08/17 10:26:43 current rate [8.953025436248573], target rate [8], attackers [8], mean response time [42.844917ms]
-        2017/08/17 10:26:43 setup and spawn new attacker [9]
-        2017/08/17 10:26:44 current rate [9.982111816054946], target rate [9], attackers [9], mean response time [42.128101ms]
-        2017/08/17 10:26:44 setup and spawn new attacker [10]
-        2017/08/17 10:26:45 current rate [10.99217377013479], target rate [10], attackers [10], mean response time [37.483798ms]
-        2017/08/17 10:26:45 end rampup ending up with [10] attackers
-        2017/08/17 10:26:45 begin full attack of [10] remaining seconds
-        2017/08/17 10:26:55 end full attack
-        2017/08/17 10:26:55 stopping attackers [10]
-        2017/08/17 10:26:55 tearing down attackers [10]
-        {
-                "startedAt": "2017-08-17T10:26:32.976273638+02:00",
-                "finishedAt": "2017-08-17T10:26:55.961789195+02:00",
-                "configuration": {
-                        "rps": 10,
-                        "attackTimeSec": 20,
-                        "rampupTimeSec": 10,
-                        "maxAttackers": 10,
-                        "rampupStrategy" : "linear",
-                        "verbose": true,
-                        "doTimeoutSec": 5,
-                        "metadata": {
-                                "service" : "happiness.services.com",
-                                "environment" : "staging",
-                                "version": "v1.42",
-                                "apiToken*": "***---***---***"
-                        }
-                },
-                "metrics": {
-                        "POST item.xml": {
-                                "latencies": {
-                                        "total": 3817277924,
-                                        "mean": 37794830,
-                                        "50th": 32147032,
-                                        "95th": 46125381,
-                                        "99th": 71243508,
-                                        "max": 422720083
-                                },
-                                "earliest": "2017-08-17T10:26:45.924789988+02:00",
-                                "latest": "2017-08-17T10:26:55.929145547+02:00",
-                                "end": "2017-08-17T10:26:55.961659257+02:00",
-                                "duration": 10004355559,
-                                "wait": 32513710,
-                                "requests": 101,
-                                "rate": 10.095602800636126,
-                                "success": 1,
-                                "status_codes": null,
-                                "errors": null
-                        }
-                },
-                "failed":false
-        }
+        +1s - *** Hazana load runner ready to attack ***
+        +1s - rps [20] attack [90] rampup [30] strategy [exp2 keep=5 max-factor=1.1] max [10] timeout [60] JSON [] CSV [report.csv]
+        +1s - [8] available logical CPUs
+        +1s - ||| rampup of [30] seconds to RPS [20] within attack of [90] seconds
+        +1s - setup and spawn new attacker [1]
+        +10s - rate [0.999929 -> 1], mean response [4.200527174s], requests [2], attackers [1], success [50 %]
+        +10s - setup and spawn new attacker [2]
+        +17s - rate [1.496180 -> 1], mean response [2.144609037s], requests [3], attackers [2], success [66 %]
+        +22s - rate [0.624308 -> 2], mean response [2.294694897s], requests [7], attackers [2], success [100 %]
+        +22s - setup and spawn new attacker [3]
+        +28s - rate [1.912042 -> 2], mean response [726.317443ms], requests [10], attackers [3], success [100 %]
+        +28s - setup and spawn new attacker [4]
+        +33s - rate [0.895940 -> 3], mean response [2.401489741s], requests [5], attackers [4], success [100 %]
+        +33s - setup and spawn new attacker [5]
+        +39s - rate [1.468714 -> 4], mean response [2.27204947s], requests [16], attackers [5], success [93 %]
+        +39s - setup and spawn new attacker [6]
+        +44s - rate [3.861015 -> 4], mean response [1.179716954s], requests [22], attackers [6], success [95 %]
+        +44s - setup and spawn new attacker [7]
+        +49s - rate [4.998839 -> 5], mean response [1.186741846s], requests [25], attackers [7], success [100 %]
+        +49s - setup and spawn new attacker [8]
+        +55s - rate [3.441637 -> 6], mean response [1.799351987s], requests [18], attackers [8], success [100 %]
+        +55s - setup and spawn new attacker [9]
+        +1m0s - rate [3.976226 -> 6], mean response [2.055811128s], requests [25], attackers [9], success [100 %]
+        +1m0s - setup and spawn new attacker [10]
+        +1m5s - rate [3.555044 -> 7], mean response [2.143760751s], requests [24], attackers [10], success [95 %]
+        +1m10s - rate [3.146333 -> 8], mean response [2.618258609s], requests [15], attackers [10], success [100 %]
+        +1m15s - rate [4.270554 -> 8], mean response [2.266823792s], requests [28], attackers [10], success [100 %]
+        +1m21s - rate [4.259347 -> 9], mean response [2.315611968s], requests [22], attackers [10], success [100 %]
+        +1m26s - rate [5.568545 -> 10], mean response [2.139091741s], requests [20], attackers [10], success [95 %]
+        +1m31s - rate [2.886864 -> 10], mean response [2.436964999s], requests [25], attackers [10], success [100 %]
+        +1m36s - rate [5.345010 -> 11], mean response [1.871945022s], requests [26], attackers [10], success [100 %]
+        +1m41s - rate [3.830200 -> 12], mean response [1.887682054s], requests [23], attackers [10], success [100 %]
+        +1m47s - rate [3.146157 -> 12], mean response [2.172577651s], requests [27], attackers [10], success [96 %]
+        +1m52s - rate [4.188442 -> 13], mean response [2.130385868s], requests [25], attackers [10], success [100 %]
+        +1m57s - rate [3.782267 -> 14], mean response [2.001996278s], requests [27], attackers [10], success [100 %]
+        +2m2s - rate [4.101091 -> 14], mean response [1.654729749s], requests [24], attackers [10], success [95 %]
+        +2m7s - rate [3.609923 -> 15], mean response [2.414714412s], requests [24], attackers [10], success [100 %]
+        +2m13s - rate [3.681610 -> 16], mean response [2.316453726s], requests [23], attackers [10], success [100 %]
+        +2m18s - rate [4.531789 -> 16], mean response [1.65280437s], requests [34], attackers [10], success [100 %]
+        +2m23s - rate [4.410283 -> 17], mean response [2.037735812s], requests [24], attackers [10], success [95 %]
+        +2m28s - rate [3.834626 -> 18], mean response [2.006833405s], requests [22], attackers [10], success [95 %]
+        +2m34s - rate [3.846774 -> 18], mean response [2.391088483s], requests [26], attackers [10], success [100 %]
+        +2m40s - rate [3.027653 -> 19], mean response [1.998581075s], requests [21], attackers [10], success [95 %]
+        +2m46s - rate [1.628317 -> 20], mean response [3.36120323s], requests [18], attackers [10], success [94 %]
+        +2m46s - ||| rampup ending up with [10] attackers
+        +2m46s - begin full attack of [60] remaining seconds
+        +3m46s - end full attack
+        +3m46s - stopping attackers [10]
+        +3m46s - tearing down attackers [10]
+        +3m46s - CSV report written to [report.csv]
+        ---------
+        category-c
+        - - - - -
+        requests: 4
+        errors: 0
+        rps: 4.1229347790648765
+        mean: 4.571788432s
+        50th: 4.222491097s
+        95th: 4.883595542s
+        99th: 4.883595542s
+        avg kB >: 0
+        avg kB <: 19
+        max: 5.184646443s
+        success: 100 %
+        ---------
+        product-p
+        - - - - -
+        requests: 2
+        errors: 0
+        rps: 2.319250297795507
+        mean: 3.39725241s
+        50th: 2.817941596s
+        95th: 2.817941596s
+        99th: 2.817941596s
+        avg kB >: 0
+        avg kB <: 11
+        max: 3.976563224s
+        success: 100 %
+        ---------
+        search
+        - - - - -
+        requests: 4
+        errors: 0
+        rps: 0.8711446902078789
+        mean: 3.802252054s
+        50th: 4.087427907s
+        95th: 4.897371961s
+        99th: 4.897371961s
+        avg kB >: 0
+        avg kB <: 8
+        max: 5.792558602s
+        success: 100 %
 
 ### Stackdriver integration
 

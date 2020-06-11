@@ -191,7 +191,7 @@ func (r *runner) fullAttack() {
 		return
 	}
 	if r.config.Verbose {
-		Printf("begin full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
+		Printf("BEGIN full attack of [%d] remaining seconds\n", r.config.AttackTimeSec-r.config.RampupTimeSec)
 	}
 	// restore pipeline function in case it was changed by the rampup strategy
 	if *oDebug {
@@ -212,14 +212,14 @@ func (r *runner) fullAttack() {
 	}
 end:
 	if r.config.Verbose {
-		Printf("end full attack\n")
+		Printf("END full attack\n")
 	}
 }
 
 func (r *runner) rampUp() {
 	strategy := strategyParameters{line: r.config.rampupStrategy()}
 	if r.config.Verbose {
-		Printf("_-_ rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec)
+		Printf("||| BEGIN rampup of [%d] seconds to RPS [%d] within attack of [%d] seconds\n", r.config.RampupTimeSec, r.config.RPS, r.config.AttackTimeSec)
 	}
 	if strategy.is("linear") {
 		linearIncreasingGoroutinesAndRequestsPerSecondStrategy{}.execute(r)
@@ -228,7 +228,7 @@ func (r *runner) rampUp() {
 		spawnAsWeNeedStrategy{parameters: strategy}.execute(r)
 	}
 	if r.config.Verbose {
-		Printf("-_- rampup ending up with [%d] attackers\n", len(r.attackers))
+		Printf("||| rampup ENDing up with [%d] attackers\n", len(r.attackers))
 	}
 }
 
