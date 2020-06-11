@@ -8,6 +8,7 @@
 - stop attackers on quit signal
 - set label for timeout result
 - update uber ratelimit
+- report bytes transferred in/out
 
 v1.6.1:
 - 50th and 99th percentile response times to the result summary (Geurtje)
