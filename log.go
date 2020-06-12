@@ -12,7 +12,7 @@ var start = time.Now()
 func Printf(format string, args ...interface{}) {
 	sub := (time.Now().Sub(start) / time.Second) * time.Second
 	dur := "+" + sub.String()
-	fmt.Printf(rightpad(dur, 7)+" - "+format, args...)
+	fmt.Printf(rightpad(dur, 8)+" - "+format, args...)
 }
 
 func rightpad(s string, size int) string {
