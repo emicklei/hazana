@@ -204,6 +204,7 @@ func (r *runner) fullAttack() {
 	} else {
 		r.resultsPipeline = r.addResult
 	}
+
 	fullAttackStartedAt = time.Now()
 	limiter := ratelimit.New(r.config.RPS) // per second
 	doneDeadline := time.Now().Add(time.Duration(r.config.AttackTimeSec-r.config.RampupTimeSec) * time.Second)
@@ -213,6 +214,7 @@ func (r *runner) fullAttack() {
 		case <-r.abort:
 			goto end
 		default:
+			r.next <- true
 		}
 	}
 end:
