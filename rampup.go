@@ -20,7 +20,13 @@ func (s linearIncreasingGoroutinesAndRequestsPerSecondStrategy) execute(r *runne
 	for i := 1; i <= r.config.RampupTimeSec; i++ {
 		spawnAttackersToSize(r, i*r.config.MaxAttackers/r.config.RampupTimeSec)
 		takeDuringRampupSeconds(r, i, 1)
+		select {
+		case <-r.abort:
+			goto end
+		default:
+		}
 	}
+end: // aborted
 }
 
 func spawnAttackersToSize(r *runner, count int) {
