@@ -1,4 +1,4 @@
-[2020-06-11] v1.9.1:
+[2020-06-11] v1.9:
 
 - add CSV output
 - add parameters for rampup strategy exp2
