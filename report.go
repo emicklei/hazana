@@ -121,14 +121,21 @@ func PrintCSVReport(r *RunReport, filename string) {
 		"succes",
 		"status_codes",
 		"errors",
-		"bytes_out",
-		"bytes_in",
+		"mean.bytes_out",
+		"mean.bytes_in",
 	}
 	w.Write(header)
 	fint64 := func(i int64) string {
 		return strconv.FormatInt(i, 10)
 	}
 	for k, v := range r.Metrics {
+		reqCount := int64(v.Requests)
+		var meanBytesOut int64 = 0
+		var meanBytesIn int64 = 0
+		if reqCount > 0 {
+			meanBytesOut = int64(v.BytesOut) / reqCount
+			meanBytesIn = int64(v.BytesIn) / reqCount
+		}
 		w.Write([]string{
 			k,
 			fint64(v.Latencies.Total.Milliseconds()),
@@ -138,13 +145,13 @@ func PrintCSVReport(r *RunReport, filename string) {
 			fint64(v.Latencies.P99.Milliseconds()),
 			fint64(v.Latencies.Max.Milliseconds()),
 			fint64(v.Wait.Milliseconds()),
-			fint64(int64(v.Requests)),
+			fint64(reqCount),
 			fmt.Sprintf("%4.f", v.Rate),
 			fint64(int64(v.successLogEntry())),
 			fmt.Sprintf("%v", v.StatusCodes),
 			fmt.Sprintf("%d", len(v.Errors)),
-			fint64(int64(v.BytesOut)),
-			fint64(int64(v.BytesIn)),
+			fint64(meanBytesOut),
+			fint64(meanBytesIn),
 		})
 	}
 	w.Flush()
