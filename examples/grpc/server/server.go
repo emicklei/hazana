@@ -19,7 +19,9 @@ func main() {
 	log.Fatal(grpcServer.Serve(lis))
 }
 
-type ClockService struct{}
+type ClockService struct {
+	UnimplementedClockServiceServer
+}
 
 func (s *ClockService) GetTime(ctx context.Context, req *GetTimeRequest) (*GetTimeResponse, error) {
 	return &GetTimeResponse{FormattedTime: time.Now().String()}, nil
