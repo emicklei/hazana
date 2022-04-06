@@ -1,3 +1,7 @@
+[2022-04-06] v1.10:
+
+- replace quantile package
+
 [2020-06-11] v1.9:
 
 - add CSV output
