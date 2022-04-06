@@ -1,35 +1,42 @@
 # attacking a site using HTTP requests
 
-    go run loadrun.go -v
+    go run loadrun.go -verbose
 
 ## example output
 
 ```
-2017/11/07 21:41:08 hazana - load runner
-2017/11/07 21:41:08 begin rampup of [10] seconds using strategy [exp2]
-2017/11/07 21:41:08 setup and spawn new attacker [1]
-2017/11/07 21:41:10 current rate [1.9955431798042864], target rate [1], attackers [1], mean response time [319.071381ms], requests [2], errors [0]
-2017/11/07 21:41:12 current rate [1.9945783650123206], target rate [1], attackers [1], mean response time [80.455101ms], requests [2], errors [0]
-2017/11/07 21:41:14 current rate [1.9963918491409411], target rate [1], attackers [1], mean response time [79.463091ms], requests [2], errors [0]
-2017/11/07 21:41:16 current rate [1.9991594773876462], target rate [1], attackers [1], mean response time [80.79111ms], requests [2], errors [0]
-2017/11/07 21:41:18 current rate [1.994817311025024], target rate [1], attackers [1], mean response time [81.079856ms], requests [2], errors [0]
-2017/11/07 21:41:20 current rate [1.999034336478249], target rate [1], attackers [1], mean response time [79.284879ms], requests [2], errors [0]
-2017/11/07 21:41:22 current rate [1.99660324478755], target rate [1], attackers [1], mean response time [81.743933ms], requests [2], errors [0]
-2017/11/07 21:41:24 current rate [1.9968518811384581], target rate [1], attackers [1], mean response time [78.591967ms], requests [2], errors [0]
-2017/11/07 21:41:26 current rate [1.9986990328086516], target rate [1], attackers [1], mean response time [76.761118ms], requests [2], errors [0]
-2017/11/07 21:41:28 current rate [1.9991410890225125], target rate [1], attackers [1], mean response time [81.871875ms], requests [2], errors [0]
-2017/11/07 21:41:28 end rampup ending up with [1] attackers
-2017/11/07 21:41:28 begin full attack of [50] remaining seconds
-2017/11/07 21:42:18 end full attack
-2017/11/07 21:42:18 stopping attackers [1]
-2017/11/07 21:42:18 tearing down attackers [1]
-2017/11/07 21:42:18 ---------
-2017/11/07 21:42:18 ubanita.org
-2017/11/07 21:42:18 - - - - -
-2017/11/07 21:42:18 requests: 51
-2017/11/07 21:42:18      rps: 1.019954188043676
-2017/11/07 21:42:18     mean: 80.030592ms
-2017/11/07 21:42:18     95th: 87.842548ms
-2017/11/07 21:42:18      max: 94.756054ms
-2017/11/07 21:42:18   errors: 0
+     +0s - *** Hazana load runner ready to attack ***
+     +0s - rps [1] attack [60] rampup [10] strategy [exp2 keep=1 factor=2.0] max [10] timeout [5] JSON [] CSV []
+     +0s - [12] available logical CPUs
+     +0s - ||| BEGIN rampup of [10] seconds to RPS [1] within attack of [60] seconds
+     +0s - setup and spawn new attacker [1]
+     +2s - rate [1.999777 -> 1], mean response [36.58042ms], requests [2], attackers [1], success [100 %]
+     +4s - rate [1.993485 -> 1], mean response [15.253384ms], requests [2], attackers [1], success [100 %]
+     +6s - rate [1.998952 -> 1], mean response [16.089334ms], requests [2], attackers [1], success [100 %]
+     +8s - rate [1.999890 -> 1], mean response [20.862207ms], requests [2], attackers [1], success [100 %]
+    +10s - rate [1.999784 -> 1], mean response [15.822663ms], requests [2], attackers [1], success [100 %]
+    +12s - rate [1.999822 -> 1], mean response [24.013889ms], requests [2], attackers [1], success [100 %]
+    +14s - rate [1.999661 -> 1], mean response [16.7976ms], requests [2], attackers [1], success [100 %]
+    +16s - rate [1.999736 -> 1], mean response [16.842378ms], requests [2], attackers [1], success [100 %]
+    +18s - rate [1.999700 -> 1], mean response [19.061471ms], requests [2], attackers [1], success [100 %]
+    +20s - rate [1.996123 -> 1], mean response [16.840931ms], requests [2], attackers [1], success [100 %]
+    +20s - ||| rampup ENDing up with [1] attackers
+    +20s - BEGIN full attack of [50] remaining seconds
+  +1m10s - END full attack
+  +1m10s - stopping attackers [1]
+  +1m10s - tearing down attackers [1]
+---------
+github.com
+- - - - -
+requests: 51
+  errors: 0
+     rps: 1.0199964515547446
+    mean: 16.668581ms
+    50th: 15.2158ms
+    95th: 24.331013ms
+    99th: 33.707276ms
+avg kB >: 0
+avg kB <: 0
+     max: 33.707276ms
+ success: 100 %
 ```

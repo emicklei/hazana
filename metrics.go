@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/streadway/quantile"
+	"github.com/beorn7/perks/quantile"
 )
 
 // this file is a modified version from https://github.com/tsenart/vegeta/blob/master/lib/metrics.go
@@ -43,7 +43,7 @@ type (
 
 		errors    map[string]struct{}
 		success   uint64
-		latencies *quantile.Estimator
+		latencies *quantile.Stream
 	}
 
 	// LatencyMetrics holds computed request latency metrics.
@@ -89,7 +89,7 @@ func (m *Metrics) add(r result) {
 	}
 	m.Latencies.Total += r.elapsed
 
-	m.latencies.Add(float64(r.elapsed))
+	m.latencies.Insert(float64(r.elapsed))
 
 	if m.Earliest.IsZero() || m.Earliest.After(r.begin) {
 		m.Earliest = r.begin
@@ -133,19 +133,19 @@ func (m *Metrics) updateLatencies() {
 	m.Wait = m.End.Sub(m.Latest)
 	m.Success = float64(m.success) / fRequests
 	m.Latencies.Mean = time.Duration(float64(m.Latencies.Total) / fRequests)
-	m.Latencies.P50 = time.Duration(m.latencies.Get(0.50))
-	m.Latencies.P95 = time.Duration(m.latencies.Get(0.95))
-	m.Latencies.P99 = time.Duration(m.latencies.Get(0.99))
+	m.Latencies.P50 = time.Duration(m.latencies.Query(0.50))
+	m.Latencies.P95 = time.Duration(m.latencies.Query(0.95))
+	m.Latencies.P99 = time.Duration(m.latencies.Query(0.99))
 }
 
 func (m *Metrics) init() {
 	if m.latencies == nil {
 		m.StatusCodes = map[string]int{}
 		m.errors = map[string]struct{}{}
-		m.latencies = quantile.New(
-			quantile.Known(0.50, 0.01),
-			quantile.Known(0.95, 0.001),
-			quantile.Known(0.99, 0.0005),
-		)
+		m.latencies = quantile.NewTargeted(map[float64]float64{
+			0.50: 0.005,
+			0.95: 0.0005,
+			0.99: 0.0001,
+		})
 	}
 }

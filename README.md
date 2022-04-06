@@ -234,4 +234,4 @@ The [hazana-report-visualizer](https://github.com/robertalpha/hazana-report-visu
 
 The [hazana-grafana-monitoring](https://github.com/emicklei/hazana-grafana-monitoring) package sends data to a Graphite server which data can be visualised using a Grafana dashboard. Using the "-m" flag you can tell your running loadtest to send this data in realtime to the dashboard (via Graphite).
 
-© 2017-2020, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
+© 2017-2022, [ernestmicklei.com](http://ernestmicklei.com).  Apache v2 License. Contributions welcome.
