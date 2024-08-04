@@ -1,7 +1,7 @@
 # hazana - package for creating load tests of services
 
-[![Build Status](https://travis-ci.org/emicklei/hazana.png)](https://travis-ci.org/emicklei/hazana)
-[![GoDoc](https://godoc.org/github.com/emicklei/hazana?status.svg)](https://godoc.org/github.com/emicklei/hazana)
+[![Go](https://github.com/emicklei/hazana/actions/workflows/go.yml/badge.svg)](https://github.com/emicklei/hazana/actions/workflows/go.yml)
+[![GoDoc](https://pkg.go.dev/badge/github.com/emicklei/hazana)](https://pkg.go.dev/github.com/emicklei/hazana)
 
 Hazana is created for load tests that use (generated) clients in Go to communicate to services (in any supported language).
 By providing the Attack interface, any client and protocol could potentially be tested with this package.
