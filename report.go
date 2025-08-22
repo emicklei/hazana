@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -58,7 +57,7 @@ func PrintReport(r *RunReport) {
 		os.Exit(1)
 	}
 	if len(r.Configuration.OutputFilename) > 0 {
-		if err := ioutil.WriteFile(r.Configuration.OutputFilename, data, os.ModePerm); err != nil {
+		if err := os.WriteFile(r.Configuration.OutputFilename, data, os.ModePerm); err != nil {
 			Printf("unable to write report [%v]", err)
 			os.Exit(1)
 		} else {
@@ -124,7 +123,7 @@ func PrintCSVReport(r *RunReport, filename string) {
 		"mean.bytes_out",
 		"mean.bytes_in",
 	}
-	w.Write(header)
+	_ = w.Write(header)
 	fint64 := func(i int64) string {
 		return strconv.FormatInt(i, 10)
 	}
@@ -136,7 +135,7 @@ func PrintCSVReport(r *RunReport, filename string) {
 			meanBytesOut = int64(v.BytesOut) / reqCount
 			meanBytesIn = int64(v.BytesIn) / reqCount
 		}
-		w.Write([]string{
+		_ = w.Write([]string{
 			k,
 			fint64(v.Latencies.Total.Milliseconds()),
 			fint64(v.Latencies.Mean.Milliseconds()),

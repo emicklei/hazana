@@ -19,14 +19,14 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestOverrideLoadedConfig(t *testing.T) {
-	flag.Set("rps", "31")
-	flag.Set("attack", "32")
-	flag.Set("ramp", "33")
-	flag.Set("max", "34")
-	flag.Set("o", "here")
-	flag.Set("verbose", "false")
-	flag.Set("s", "?")
-	flag.Set("timeout", "35")
+	_ = flag.Set("rps", "31")
+	_ = flag.Set("attack", "32")
+	_ = flag.Set("ramp", "33")
+	_ = flag.Set("max", "34")
+	_ = flag.Set("o", "here")
+	_ = flag.Set("verbose", "false")
+	_ = flag.Set("s", "?")
+	_ = flag.Set("timeout", "35")
 	c := ConfigFromFile("config_test.json")
 	if got, want := c.RPS, 31; got != want {
 		t.Errorf("got %v want %v", got, want)

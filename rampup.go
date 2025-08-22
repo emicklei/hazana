@@ -9,10 +9,6 @@ import (
 
 const defaultRampupStrategy = "exp2 keep=1 factor=2.0"
 
-type rampupStrategy interface {
-	execute(r *runner)
-}
-
 type linearIncreasingGoroutinesAndRequestsPerSecondStrategy struct{}
 
 func (s linearIncreasingGoroutinesAndRequestsPerSecondStrategy) execute(r *runner) {

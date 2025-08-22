@@ -10,7 +10,7 @@ var start = time.Now()
 
 // Printf prefixes the line with relative time indicator
 func Printf(format string, args ...interface{}) {
-	sub := (time.Now().Sub(start) / time.Second) * time.Second
+	sub := (time.Since(start) / time.Second) * time.Second
 	dur := "+" + sub.String()
 	fmt.Printf(rightpad(dur, 8)+" - "+format, args...)
 }

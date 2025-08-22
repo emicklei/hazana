@@ -90,7 +90,7 @@ func (r *runner) listenForAbort() {
 	r.abort = make(chan bool)
 	// abort will stop test,rampup or full attack
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		sig := <-ch
 		Printf("caught signal %v. aborting run...\n", sig)
@@ -148,7 +148,11 @@ func (r *runner) test(count int) *RunReport {
 		Printf("test attack setup failed [%v]", err)
 		return &RunReport{Configuration: r.config, Output: map[string]interface{}{}}
 	}
-	defer probe.Teardown()
+	defer func() {
+		if err := probe.Teardown(); err != nil {
+			Printf("teardown failed with %v", err)
+		}
+	}()
 	for s := count; s > 0; s-- {
 		now := time.Now()
 		doResult := probe.Do(context.Background())

@@ -3,7 +3,6 @@ package hazana
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ func TestLoadRunReportWithError(t *testing.T) {
 		t.Error("expected failed run")
 	}
 	PrintReport(r)
-	data, _ := ioutil.ReadFile(f)
+	data, _ := os.ReadFile(f)
 	b := RunReport{}
 	if err := json.Unmarshal(data, &b); err != nil {
 		t.Error(err)

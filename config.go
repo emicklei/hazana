@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -166,7 +165,7 @@ func GetEnv(key, absentValue string) string {
 
 // ReadFile returns the text contents of a file or absentValue if it errored
 func ReadFile(name, absentValue string) string {
-	data, err := ioutil.ReadFile(name)
+	data, err := os.ReadFile(name)
 	if err != nil {
 		if *oVerbose {
 			Printf("error reading file [%s], returning [%s...](%d)\n", name, absentValue[:1], len(absentValue))
