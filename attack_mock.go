@@ -15,8 +15,12 @@ func (m *attackMock) Setup(c Config) error {
 }
 
 func (m *attackMock) Do(ctx context.Context) DoResult {
-	time.Sleep(m.sleep)
-	return DoResult{}
+	select {
+	case <-time.After(m.sleep):
+		return DoResult{}
+	case <-ctx.Done():
+		return DoResult{Error: ctx.Err()}
+	}
 }
 
 func (m *attackMock) Teardown() error {
