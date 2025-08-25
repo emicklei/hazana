@@ -11,8 +11,9 @@ type Attack interface {
 	// Setup should establish the connection to the service
 	// It may want to access the config of the runner.
 	Setup(c Config) error
-	// Do performs one request and is executed in a separate goroutine.
+	// Do performs one request.
 	// The context is used to cancel the request on timeout.
+	// This method must honor the context cancellation.
 	Do(ctx context.Context) DoResult
 	// Teardown can be used to close the connection to the service
 	Teardown() error
@@ -31,19 +32,18 @@ func attack(attacker Attack, next, quit <-chan bool, results chan<- result, time
 		select {
 		case <-next:
 			begin := time.Now()
-			done := make(chan DoResult)
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			go func() {
-				done <- attacker.Do(ctx)
-			}()
-			var dor DoResult
-			// either get the result from the attacker or from the timeout
-			select {
-			case <-ctx.Done():
-				dor = DoResult{RequestLabel: "timeout", Error: errAttackDoTimedOut}
-			case dor = <-done:
+
+			// call Do and block
+			dor := attacker.Do(ctx)
+
+			// call cancel to avoid context leak
+			cancel()
+
+			if dor.Error == context.DeadlineExceeded {
+				dor.Error = errAttackDoTimedOut
 			}
+
 			end := time.Now()
 			results <- result{
 				doResult: dor,
