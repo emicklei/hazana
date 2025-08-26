@@ -67,17 +67,19 @@ Programs that use the **hazana** package will have several flags to control the 
         -o string
                 output file to write the metrics per sample request index (use stdout if empty)
         -csv string
-                CSV output file to write the metrics
+                CSV output file to write the metrics per sample request index
         -ramp int
                 ramp up time in seconds (default 10)
         -s string
-                set the rampup strategy, possible values are {linear,exp2}
+                set the rampup strategy, possible values are {linear, "exp2 [keep=S] [max-factor=F]"}
         -rps int
                 target number of requests per second, must be greater than zero (default 1)
         -t int
-                test your attack implementation with a number of sample calls. Your program exits after this.
+                test your attack implementation with a number of sample calls (default 0). Your program exits after this.
         -verbose
                 produce more verbose logging
+        -debug
+                produce more debugging logging
 
 #### Example from flags
 
